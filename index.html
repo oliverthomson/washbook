@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="te">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WashBook</title>
+<meta name="description" content="WashBook — car wash daily book">
+<meta name="theme-color" content="#0A78A0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WashBook">
+<style>
+  :root { --brand:#0A78A0; --bg:#E9F2F4; --ink:#0D2731; --muted:#587080; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0B1A20; --ink:#E4F0F3; --muted:#8FA8B3; } }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+    font-family:"Noto Sans Telugu","Nirmala UI",system-ui,sans-serif; }
+  body { display:flex; flex-direction:column; }
+  #bar { display:flex; align-items:center; gap:10px; background:var(--brand); color:#fff;
+    padding:calc(8px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));
+    font-weight:700; font-size:16px; }
+  #bar span { flex:1; min-width:0; }
+  #bar button { border:0; border-radius:10px; font:inherit; font-weight:800; padding:8px 14px; cursor:pointer; }
+  #install { background:#fff; color:var(--brand); }
+  #close { background:transparent; color:#fff; padding:8px 6px; }
+  iframe { flex:1; width:100%; border:0; display:block; }
+  #pick, #wait { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px)); text-align:center; }
+  .drop { width:64px; height:64px; border-radius:16px; }
+  h1 { margin:0; font-size:26px; }
+  #pick p { margin:0; color:var(--muted); }
+  #code { font-size:26px; font-weight:800; text-align:center; letter-spacing:.12em; text-transform:uppercase;
+    width:100%; max-width:260px; padding:12px; border-radius:14px; border:2px solid #C9D9DF; box-sizing:border-box; }
+  #go { background:var(--brand); color:#fff; border:0; border-radius:14px; font-size:20px; font-weight:800; padding:14px 30px; cursor:pointer; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+  <div id="bar" hidden>
+    <span id="barText">📲 WashBook ను ఫోన్‌లో ఇన్‌స్టాల్ చేయండి</span>
+    <button id="install" hidden>ఇన్‌స్టాల్</button>
+    <button id="close" aria-label="Close">✕</button>
+  </div>
+
+  <div id="wait">
+    <img class="drop" src="icons/icon-192.png" alt="">
+    <div>లోడ్ అవుతోంది… / Loading…</div>
+  </div>
+
+  <iframe id="app" title="WashBook" allow="clipboard-write" hidden></iframe>
+
+  <form id="pick" hidden>
+    <img class="drop" src="icons/icon-192.png" alt="">
+    <h1>WashBook</h1>
+    <p>మీ షాప్ కోడ్ నమోదు చేయండి<br>Enter your shop code</p>
+    <input id="code" autocomplete="off" autocapitalize="characters" placeholder="FAM278" maxlength="10">
+    <button id="go" type="submit">తెరవండి / Open</button>
+  </form>
+
+<script>
+/* =========================================================
+   Paste your Apps Script Web app URL (ends in /exec) here.
+   ========================================================= */
+var APP_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';
+
+var KEY = 'washbook_shop';
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+function clean(c) { return String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+
+var params = new URLSearchParams(location.search);
+var shop = clean(params.get('shop')) || clean(store(KEY));
+var frame = document.getElementById('app');
+
+function openShop(code) {
+  store(KEY, code);
+  if (clean(params.get('shop')) !== code) {
+    params.set('shop', code);
+    history.replaceState(null, '', location.pathname + '?' + params.toString());
+  }
+  document.getElementById('pick').hidden = true;
+  frame.src = APP_URL + (APP_URL.indexOf('?') >= 0 ? '&' : '?') + 'shop=' + encodeURIComponent(code);
+  frame.hidden = false;
+  frame.addEventListener('load', function () { document.getElementById('wait').hidden = true; }, { once: true });
+  setTimeout(function () { document.getElementById('wait').hidden = true; }, 8000);
+}
+
+if (APP_URL.indexOf('PASTE_') === 0) {
+  document.getElementById('wait').innerHTML = '<h1>WashBook</h1><div>Set APP_URL in index.html first.</div>';
+} else if (shop) {
+  openShop(shop);
+} else {
+  document.getElementById('wait').hidden = true;
+  document.getElementById('pick').hidden = false;
+}
+
+document.getElementById('pick').addEventListener('submit', function (e) {
+  e.preventDefault();
+  var c = clean(document.getElementById('code').value);
+  if (c.length >= 4) { document.getElementById('wait').hidden = false; openShop(c); }
+});
+
+/* ---------- Install to home screen ---------- */
+var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+var dismissed = store('washbook_install_closed') === '1';
+var bar = document.getElementById('bar'), btn = document.getElementById('install'), deferred = null;
+
+window.addEventListener('beforeinstallprompt', function (e) {
+  e.preventDefault();
+  deferred = e;
+  if (!standalone && !dismissed) { btn.hidden = false; bar.hidden = false; }
+});
+btn.addEventListener('click', function () {
+  if (!deferred) return;
+  deferred.prompt();
+  deferred.userChoice.then(function () { bar.hidden = true; deferred = null; });
+});
+document.getElementById('close').addEventListener('click', function () {
+  bar.hidden = true; store('washbook_install_closed', '1');
+});
+window.addEventListener('appinstalled', function () { bar.hidden = true; });
+
+// iPhone has no install button: show the Share → Add to Home Screen hint once
+var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+if (ios && !standalone && !dismissed) {
+  document.getElementById('barText').textContent = '📲 Share ⬆️ → "Add to Home Screen"';
+  bar.hidden = false;
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function () {});
+}
+</script>
+</body>
+</html>
