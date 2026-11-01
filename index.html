@@ -35,14 +35,12 @@ button{cursor:pointer}
 :focus-visible{outline:3px solid var(--wash);outline-offset:2px}
 .num{font-variant-numeric:tabular-nums}
 
-.top{display:flex;align-items:center;gap:8px}
-.brand{font-weight:800;font-size:20px;flex:1;min-width:0;display:flex;align-items:center;gap:8px;line-height:1.1}
-.brand span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top{display:flex;align-items:center;gap:6px}
+.brand{font-weight:800;font-size:20px;flex:1;min-width:0;display:flex;align-items:center;gap:8px;line-height:1.15}
+.brand>span:last-child{overflow-wrap:anywhere}
 .drop{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--wash);flex:none}
-.lang{display:flex;background:var(--sunk);border-radius:999px;padding:3px;flex:none}
-.lang button{border:0;background:transparent;padding:3px 10px;border-radius:999px;font-weight:700;font-size:14px}
-.lang button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.sync{flex:none;font-size:13px;font-weight:800;border-radius:999px;padding:3px 9px;background:var(--good-bg);color:var(--good);border:0}
+.lang{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;min-width:34px;height:30px;padding:0 8px;font-weight:800;font-size:13px;line-height:1}
+.sync{flex:none;font-size:13px;font-weight:800;border-radius:999px;min-width:30px;height:30px;padding:0 8px;background:var(--good-bg);color:var(--good);border:0;line-height:1}
 .sync.wait{background:var(--warn-bg);color:var(--warn)} .sync.off{background:var(--bad-bg);color:var(--bad)}
 .back{border:0;background:var(--sunk);border-radius:12px;padding:6px 14px;font-weight:700;font-size:17px}
 
@@ -146,21 +144,20 @@ h2{font-size:15px;color:var(--muted);font-weight:700;margin:4px 0 -4px;text-tran
 .foot button{border:0;background:transparent;color:var(--muted);text-decoration:underline;font-size:15px}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--good);color:var(--on);font-weight:800;font-size:18px;padding:12px 22px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:20;max-width:90vw;text-align:center}
 .toast.bad{background:var(--bad)}
-#inst{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:8px;background:var(--wash);color:var(--on);
-  margin:calc(-12px - env(safe-area-inset-top,0px)) calc(-1 * max(16px,env(safe-area-inset-right,0px))) 12px calc(-1 * max(16px,env(safe-area-inset-left,0px)));
-  padding:calc(8px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));font-weight:700;font-size:15px;line-height:1.3}
-#inst span{flex:1;min-width:0}
-#inst button{border:0;border-radius:10px;font:inherit;font-weight:800;padding:8px 14px}
-#instGo{background:#fff;color:var(--wash)} #instX{background:transparent;color:var(--on);padding:8px 4px}
-.brandbtn{border:0;background:transparent;font:inherit;font-weight:800;color:inherit;padding:0;display:flex;align-items:center;gap:4px;min-width:0;cursor:pointer}
-.brandbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brandbtn{border:0;background:transparent;font:inherit;font-weight:800;color:inherit;padding:0;display:flex;align-items:center;gap:6px;min-width:0;cursor:pointer;text-align:left;line-height:1.15}
+.brandbtn span{overflow-wrap:anywhere}
+.brandbtn .car{flex:none;font-size:14px;color:var(--muted);transition:transform .15s}
+.brandbtn[aria-expanded="true"] .car{transform:rotate(180deg)}
+.bmenu{background:var(--surface);border:2px solid var(--wash);border-radius:16px;overflow:hidden;margin-top:-4px}
+.bmenu .row{font-size:18px;font-weight:700}
+.bmenu .row.here{background:var(--sunk)}
+.bmenu .tick{color:var(--wash);font-weight:800}
 .allb{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;font-weight:800;font-size:17px;color:var(--ink)}
 .row.here{background:var(--sunk)}
 .center{text-align:center;padding:40px 0;font-size:20px;font-weight:700;color:var(--muted)}
 </style>
 </head>
 <body>
-<div id="inst" hidden><span id="instText"></span><button id="instGo" hidden>ఇన్‌స్టాల్ / Install</button><button id="instX" aria-label="Close">✕</button></div>
 <div class="app" id="app"><div class="center">…</div></div>
 <div class="toast" id="toast" hidden></div>
 
@@ -450,23 +447,27 @@ function toLogin(){token=null;LS.del('token');view='login';ui={pin:''};render()}
 
 /* ============ Screens ============ */
 function langToggle(){
- return '<div class="lang" role="group" aria-label="Language"><button id="l-en" aria-pressed="'+(lang==='en')+'" data-lang="en">EN</button>'+
-  '<button id="l-te" aria-pressed="'+(lang==='te')+'" data-lang="te">తెలుగు</button></div>';
+ // one small button that switches to the other language
+ return lang==='te'?'<button class="lang" id="l-en" data-lang="en" aria-label="English">EN</button>'
+                   :'<button class="lang" id="l-te" data-lang="te" aria-label="తెలుగు">తె</button>';
 }
 function syncHtml(){
  if(!token||!D)return '';
- var cls='',txt=t('synced');
- if(net==='locked'){cls='off';txt=t('lockedChip').replace('{n}',Q.length)}
- else if(net==='off'){cls='off';txt=t('offline').replace('{n}',Q.length)}
- else if(Q.length){cls='wait';txt=t('waiting').replace('{n}',Q.length)}
- return '<button class="sync '+cls+'" id="sync" aria-live="polite">'+txt+'</button>';
+ // all saved = just a tick; waiting or offline = icon + how many entries wait
+ var cls='',txt='✓',lab=t('synced');
+ if(net==='locked'){cls='off';txt='🔒 '+Q.length;lab=t('lockedChip').replace('{n}',Q.length)}
+ else if(net==='off'){cls='off';txt='⚠ '+Q.length;lab=t('offline').replace('{n}',Q.length)}
+ else if(Q.length){cls='wait';txt='⏳ '+Q.length;lab=t('waiting').replace('{n}',Q.length)}
+ return '<button class="sync '+cls+'" id="sync" aria-live="polite" aria-label="'+esc(lab)+'" title="'+esc(lab)+'">'+txt+'</button>';
 }
 function syncChip(){var el=document.getElementById('sync');if(el)el.outerHTML=syncHtml()}
 function header(title){
  if(!title){
   var multi=D.branches&&D.branches.length>1;
-  var name=multi?'<button class="brandbtn" id="branchbtn" data-go="branches"><span>'+esc(D.settings.shopName)+'</span> ▾</button>':'<span>'+esc(D.settings.shopName)+'</span>';
-  return '<div class="top"><div class="brand"><span class="drop"></span>'+name+'</div>'+syncHtml()+langToggle()+'</div>';
+  var name=multi?'<button class="brandbtn" id="branchbtn" aria-expanded="'+(!!ui.bmenu)+'"><span>'+esc(D.settings.shopName)+'</span><span class="car">▼</span></button>':'<span>'+esc(D.settings.shopName)+'</span>';
+  var menu=multi&&ui.bmenu?'<div class="bmenu list" role="listbox">'+D.branches.map(function(b){var here=b.code===SHOP;
+    return '<button class="row'+(here?' here':'')+'" role="option" aria-selected="'+here+'" data-switch="'+esc(b.code)+'"><span class="main">'+esc(b.name)+'</span>'+(here?'<span class="tick">✓</span>':'')+'</button>'}).join('')+'</div>':'';
+  return '<div class="top"><div class="brand"><span class="drop"></span>'+name+'</div>'+syncHtml()+langToggle()+'</div>'+menu;
  }
  return '<div class="top"><button class="back" id="back" data-go="home">'+t('back')+'</button><div style="flex:1"></div>'+syncHtml()+langToggle()+'</div><h1>'+title+'</h1>';
 }
@@ -736,6 +737,7 @@ document.addEventListener('click',function(e){
  }
  if(d.go){if(readOnly()&&d.go!=='home'&&d.go!=='cust'&&d.go!=='branches'){toast(t('locked'),true);return}go(d.go);if(d.go==='branches')loadBranches();return}
  if(d.switch){switchShop(d.switch);return}
+ if(b.id==='branchbtn'){ui.bmenu=!ui.bmenu;render();return}
  if(b.id==='sync'){flush();refresh();return}
  if(b.id==='refresh'){flush();refresh(true);return}
  if(b.id==='logout'){var tk=token;if(tk)call('logout',SHOP,tk).catch(function(){});toLogin();return}
@@ -803,25 +805,6 @@ boot();
 </script>
 
 <script>
-/* ============ Install to home screen ============ */
-(function(){
- var bar=document.getElementById('inst'),txt=document.getElementById('instText'),btn=document.getElementById('instGo');
- var ua=navigator.userAgent,deferred=null;
- var standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
- var closed=false;try{closed=localStorage.getItem('washbook_inst_closed')==='1'}catch(e){}
- if(standalone||closed)return;
- function show(msg,withBtn){txt.textContent=msg;btn.hidden=!withBtn;bar.hidden=false}
- var inApp=/; wv\)|WhatsApp|FBAN|FBAV|Instagram|Line\//i.test(ua);
- var ios=/iphone|ipad|ipod/i.test(ua);
- if(inApp){show('📲 ⋮ → "Chrome లో తెరవండి / Open in Chrome" — then install',false);return}
- if(ios){show('📲 Safari లో Share ⬆️ నొక్కండి → "Add to Home Screen" → Add.  (Tap Share ⬆️ in Safari → "Add to Home Screen")',false);return}
- window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;show('📲 WashBook ను ఫోన్‌లో పెట్టుకోండి',true)});
- btn.addEventListener('click',function(){if(!deferred)return;deferred.prompt();deferred.userChoice.then(function(){bar.hidden=true;deferred=null})});
- // Chrome sometimes does not offer its own button: show the menu steps instead
- setTimeout(function(){if(!deferred&&bar.hidden)show('📲 ⋮ → "Add to Home screen" / "Install app"',false)},4000);
- document.getElementById('instX').addEventListener('click',function(){bar.hidden=true;try{localStorage.setItem('washbook_inst_closed','1')}catch(e){}});
- window.addEventListener('appinstalled',function(){bar.hidden=true});
-})();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}
 </script>
 </body>
