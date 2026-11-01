@@ -47,6 +47,7 @@ button{cursor:pointer}
 .back{border:0;background:var(--sunk);border-radius:12px;padding:6px 14px;font-weight:700;font-size:17px}
 
 .today{background:var(--surface);border-radius:18px;padding:14px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border:1px solid var(--line)}
+.today.two{grid-template-columns:repeat(2,1fr)}
 .today .k{font-size:13px;color:var(--muted);font-weight:600}
 .today .v{font-size:23px;font-weight:800}
 .today .date{grid-column:1/-1;font-size:14px;color:var(--muted);font-weight:600}
@@ -151,6 +152,10 @@ h2{font-size:15px;color:var(--muted);font-weight:700;margin:4px 0 -4px;text-tran
 #inst span{flex:1;min-width:0}
 #inst button{border:0;border-radius:10px;font:inherit;font-weight:800;padding:8px 14px}
 #instGo{background:#fff;color:var(--wash)} #instX{background:transparent;color:var(--on);padding:8px 4px}
+.brandbtn{border:0;background:transparent;font:inherit;font-weight:800;color:inherit;padding:0;display:flex;align-items:center;gap:4px;min-width:0;cursor:pointer}
+.brandbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.allb{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;font-weight:800;font-size:17px;color:var(--ink)}
+.row.here{background:var(--sunk)}
 .center{text-align:center;padding:40px 0;font-size:20px;font-weight:700;color:var(--muted)}
 </style>
 </head>
@@ -188,6 +193,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
+  branches:'Branches',allBranches:'All branches',todayAll:'Today, all branches',closed:'Day closed',notClosed:'Not closed yet',here:'You are here',lic_warn:'Renew soon',lic_grace:'Expired',lic_expired:'Read-only',lic_suspended:'Switched off',total:'Total',
   oldDue:'Old due',setup:'This shop is not set up yet. Contact support.',error:'Could not save',del:'Delete',
   licWarn:'Subscription ends in {n} days. Call {who} {phone} to renew.',
   licGrace:'Subscription has ended. The app stops saving in {n} days. Call {who} {phone} to renew.',
@@ -211,6 +217,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
+  branches:'బ్రాంచ్‌లు',allBranches:'అన్ని బ్రాంచ్‌లు',todayAll:'ఈరోజు, అన్ని బ్రాంచ్‌లు',closed:'రోజు ముగిసింది',notClosed:'ఇంకా ముగియలేదు',here:'మీరు ఇక్కడ ఉన్నారు',lic_warn:'త్వరలో రెన్యూ',lic_grace:'గడువు ముగిసింది',lic_expired:'చూడటానికి మాత్రమే',lic_suspended:'ఆపివేయబడింది',total:'మొత్తం',
   oldDue:'పాత బాకీ',setup:'ఈ షాప్ ఇంకా సెటప్ కాలేదు. సపోర్ట్‌ను సంప్రదించండి.',error:'సేవ్ కాలేదు',del:'తొలగించు',
   licWarn:'సబ్‌స్క్రిప్షన్ {n} రోజుల్లో ముగుస్తుంది. రెన్యూ కోసం {who} {phone}కి కాల్ చేయండి.',
   licGrace:'సబ్‌స్క్రిప్షన్ ముగిసింది. {n} రోజుల తర్వాత యాప్ సేవ్ చేయదు. రెన్యూ కోసం {who} {phone}కి కాల్ చేయండి.',
@@ -385,6 +392,36 @@ function stopApp(kind){
  fatal=supportText('suspended');
  render();
 }
+function branchesView(){
+ var h=header(t('branches'));
+ if(ui.bErr)h+='<div class="banner b-bad">'+t('error')+'</div>';
+ if(!ui.bs)return h+'<div class="center">'+t('loading')+'</div>';
+ var tot={cars:0,sales:0};
+ ui.bs.forEach(function(b){tot.cars+=b.cars||0;tot.sales+=b.sales||0});
+ h+='<div class="today"><div class="date">'+t('todayAll')+'</div>'+
+  '<div><div class="k">'+t('cars')+'</div><div class="v num">'+tot.cars+'</div></div>'+
+  '<div><div class="k">'+t('sales')+'</div><div class="v num">'+rs(tot.sales)+'</div></div>'+
+  '<div><div class="k">'+t('branches')+'</div><div class="v num">'+ui.bs.length+'</div></div></div>';
+ h+='<div class="list">'+ui.bs.map(function(b){
+  var here=b.code===SHOP;
+  var lic=b.licence&&b.licence!=='ok'?'<span class="pay p-credit">'+t('lic_'+b.licence)+'</span> ':'';
+  var st=b.error?'':(b.closed?(b.diff===0?'<span class="pay p-cash">✓ '+t('closed')+'</span>':'<span class="pay p-credit">'+t('closed')+' '+(b.diff<0?'−':'+')+rs(Math.abs(b.diff))+'</span>'):'<span class="pay p-card">'+t('notClosed')+'</span>');
+  return '<button class="row'+(here?' here':'')+'" data-switch="'+esc(b.code)+'"><div class="main"><div class="plate">'+esc(b.name)+'</div>'+
+   '<div class="sub">'+(b.error?'—':b.cars+' '+t('cars')+' · '+t('cashBox')+' '+rs(b.cash))+'</div><div>'+lic+st+(here?' <span class="sub">· '+t('here')+'</span>':'')+'</div></div>'+
+   '<div class="amt num">'+(b.error?'':rs(b.sales))+'</div></button>';
+ }).join('')+'</div>';
+ return h;
+}
+function loadBranches(){
+ ui.bs=null;ui.bErr=false;render();
+ call('api',SHOP,token,'branches').then(function(res){if(view==='branches'){ui.bs=res.branches;render()}},
+  function(e){if(errKind(e)==='login')return toLogin();ui.bErr=true;ui.bs=[];render()});
+}
+function switchShop(code){
+ if(code===SHOP){go('home');return}
+ var tk=token;
+ openShop(code,tk);
+}
 function pickView(){
  return '<div class="top"><div style="flex:1"></div>'+langToggle()+'</div>'+
   '<form class="pinbox" id="pickform"><img src="icons/icon-192.png" alt="" width="64" height="64" style="border-radius:16px">'+
@@ -393,12 +430,13 @@ function pickView(){
   '<div class="err" role="alert">'+(ui.bad?t('badLink'):'')+'</div>'+
   '<button class="big" type="submit" style="background:var(--wash);max-width:260px">'+t('open')+'</button></form>';
 }
-function openShop(code){
+function openShop(code,carryToken){
  SHOP=code;
  try{localStorage.setItem('washbook_shop',code)}catch(e){}
  try{history.replaceState(null,'',location.pathname+'?shop='+code)}catch(e){}
  lang=LS.get('lang',lang);token=LS.get('token',null);D=LS.get('data',null);Q=LS.get('queue',[]);
- fatal='';boot();
+ if(carryToken&&!token){token=carryToken;LS.set('token',token)}
+ fatal='';net='ok';boot();
 }
 function readOnly(){return !!(D&&D.licence&&D.licence.state==='expired')}
 function licBanner(){
@@ -425,7 +463,11 @@ function syncHtml(){
 }
 function syncChip(){var el=document.getElementById('sync');if(el)el.outerHTML=syncHtml()}
 function header(title){
- if(!title)return '<div class="top"><div class="brand"><span class="drop"></span><span>'+esc(D.settings.shopName)+'</span></div>'+syncHtml()+langToggle()+'</div>';
+ if(!title){
+  var multi=D.branches&&D.branches.length>1;
+  var name=multi?'<button class="brandbtn" id="branchbtn" data-go="branches"><span>'+esc(D.settings.shopName)+'</span> ▾</button>':'<span>'+esc(D.settings.shopName)+'</span>';
+  return '<div class="top"><div class="brand"><span class="drop"></span>'+name+'</div>'+syncHtml()+langToggle()+'</div>';
+ }
  return '<div class="top"><button class="back" id="back" data-go="home">'+t('back')+'</button><div style="flex:1"></div>'+syncHtml()+langToggle()+'</div><h1>'+title+'</h1>';
 }
 
@@ -455,12 +497,13 @@ function homeView(){
  if(!rows)rows='<div class="row"><div class="main sub">'+t('noWash')+'</div></div>';
  var ro=readOnly(),tile=function(id,cls,ic,lb){return '<button class="tile '+cls+'" id="go-'+id+'" data-go="'+id+'" '+(ro&&id!=='cust'?'disabled':'')+'><span class="ic">'+(ro&&id!=='cust'?'🔒':ic)+'</span><span class="lb">'+lb+'</span></button>'};
  return header()+licBanner()+
- '<div class="today"><div class="date">'+t('today')+' · '+esc(d)+'</div>'+
+ '<div class="today two"><div class="date">'+t('today')+' · '+esc(d)+'</div>'+
   '<div><div class="k">'+t('cars')+'</div><div class="v num">'+x.cars+'</div></div>'+
   '<div><div class="k">'+t('sales')+'</div><div class="v num">'+rs(x.sales)+'</div></div>'+
-  '<div><div class="k">'+t('cashBox')+'</div><div class="v num">'+rs(x.expected)+'</div></div></div>'+
+  '</div>'+
  '<div class="tiles">'+
   tile('wash','t-wash','🚗',t('wash'))+tile('cust','t-cust','👥',t('cust'))+tile('exp','t-exp','💸',t('exp'))+tile('close','t-close','💰',t('close'))+'</div>'+
+ (D.branches&&D.branches.length>1?'<button class="allb" id="go-branches" data-go="branches"><span>🏢 '+t('allBranches')+' ('+D.branches.length+')</span><span>→</span></button>':'')+
  '<h2>'+t('recent')+'</h2><div class="list">'+rows+'</div>'+
  '<div class="foot"><button id="refresh">↻ '+t('refresh')+'</button><button id="logout">👤 '+esc(D.user.name)+' · '+t('switchUser')+'</button></div>';
 }
@@ -611,7 +654,7 @@ function render(){
  if(view==='pick')html=pickView();
  else if(view==='login')html=loginView();
  else if(!D)html='<div class="center">'+t('loading')+'</div>';
- else html={home:homeView,wash:washView,cust:custView,exp:expView,close:closeView}[view]();
+ else html={home:homeView,wash:washView,cust:custView,exp:expView,close:closeView,branches:branchesView}[view]();
  var a=document.activeElement,fid=a&&a.id,pos=a&&a.selectionStart;
  app.innerHTML=html;
  if(fid){var el=document.getElementById(fid);if(el&&el.tagName==='INPUT'){el.focus();try{el.setSelectionRange(pos,pos)}catch(e){}}}
@@ -691,7 +734,8 @@ document.addEventListener('click',function(e){
   else if((ui.pin||'').length<8)ui.pin=(ui.pin||'')+d.key;
   pinErr='';render();return;
  }
- if(d.go){if(readOnly()&&d.go!=='home'&&d.go!=='cust'){toast(t('locked'),true);return}go(d.go);return}
+ if(d.go){if(readOnly()&&d.go!=='home'&&d.go!=='cust'&&d.go!=='branches'){toast(t('locked'),true);return}go(d.go);if(d.go==='branches')loadBranches();return}
+ if(d.switch){switchShop(d.switch);return}
  if(b.id==='sync'){flush();refresh();return}
  if(b.id==='refresh'){flush();refresh(true);return}
  if(b.id==='logout'){var tk=token;if(tk)call('logout',SHOP,tk).catch(function(){});toLogin();return}
@@ -770,7 +814,7 @@ boot();
  var inApp=/; wv\)|WhatsApp|FBAN|FBAV|Instagram|Line\//i.test(ua);
  var ios=/iphone|ipad|ipod/i.test(ua);
  if(inApp){show('📲 ⋮ → "Chrome లో తెరవండి / Open in Chrome" — then install',false);return}
- if(ios){show('📲 Share ⬆️ → "Add to Home Screen"',false);return}
+ if(ios){show('📲 Safari లో Share ⬆️ నొక్కండి → "Add to Home Screen" → Add.  (Tap Share ⬆️ in Safari → "Add to Home Screen")',false);return}
  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;show('📲 WashBook ను ఫోన్‌లో పెట్టుకోండి',true)});
  btn.addEventListener('click',function(){if(!deferred)return;deferred.prompt();deferred.userChoice.then(function(){bar.hidden=true;deferred=null})});
  // Chrome sometimes does not offer its own button: show the menu steps instead
