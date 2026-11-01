@@ -1,6 +1,6 @@
-// WashBook website: keeps the start page and icons on the phone so the app opens quickly.
-// The app itself (inside the page) always comes fresh from Google.
-var CACHE = 'washbook-v1';
+// WashBook website: keeps the app on the phone so it opens even with weak internet.
+// Updates are picked up whenever the phone has internet; data always goes to Google.
+var CACHE = 'washbook-v2';
 var FILES = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/favicon.png'];
 
 self.addEventListener('install', function (e) {
