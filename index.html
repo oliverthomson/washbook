@@ -149,7 +149,9 @@ h2{font-size:15px;color:var(--muted);font-weight:700;margin:4px 0 -4px;text-tran
 .brandbtn .car{flex:none;font-size:14px;color:var(--muted);transition:transform .15s}
 .brandbtn[aria-expanded="true"] .car{transform:rotate(180deg)}
 .bmenu{background:var(--surface);border:2px solid var(--wash);border-radius:16px;overflow:hidden;margin-top:-4px}
-.bmenu .row{font-size:18px;font-weight:700}
+.bmenu .row{display:flex;align-items:center}
+.bmenu .bname{display:block;font-size:18px;font-weight:800}
+.bmenu .btot{font-weight:800;background:var(--sunk);justify-content:space-between}
 .bmenu .row.here{background:var(--sunk)}
 .bmenu .tick{color:var(--wash);font-weight:800}
 .allb{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;font-weight:800;font-size:17px;color:var(--ink)}
@@ -465,8 +467,18 @@ function header(title){
  if(!title){
   var multi=D.branches&&D.branches.length>1;
   var name=multi?'<button class="brandbtn" id="branchbtn" aria-expanded="'+(!!ui.bmenu)+'"><span>'+esc(D.settings.shopName)+'</span><span class="car">▼</span></button>':'<span>'+esc(D.settings.shopName)+'</span>';
-  var menu=multi&&ui.bmenu?'<div class="bmenu list" role="listbox">'+D.branches.map(function(b){var here=b.code===SHOP;
-    return '<button class="row'+(here?' here':'')+'" role="option" aria-selected="'+here+'" data-switch="'+esc(b.code)+'"><span class="main">'+esc(b.name)+'</span>'+(here?'<span class="tick">✓</span>':'')+'</button>'}).join('')+'</div>':'';
+  var menu='';
+  if(multi&&ui.bmenu){
+   var sum=ui.bsum||{},tc=0,ts=0,have=!!ui.bsum;
+   menu='<div class="bmenu list" role="listbox">'+D.branches.map(function(b){
+    var here=b.code===SHOP,n=sum[b.code];
+    if(n&&!n.error){tc+=n.cars||0;ts+=n.sales||0}
+    var line=!have?t('loading'):(!n||n.error?'—':n.cars+' '+t('cars')+' · '+rs(n.sales)+' · '+
+      (n.closed?(n.diff===0?'✓ '+t('closed'):t('closed')+' '+(n.diff<0?'−':'+')+rs(Math.abs(n.diff))):t('notClosed'))+
+      (n.licence&&n.licence!=='ok'?' · '+t('lic_'+n.licence):''));
+    return '<button class="row'+(here?' here':'')+'" role="option" aria-selected="'+here+'" data-switch="'+esc(b.code)+'"><span class="main"><span class="bname">'+esc(b.name)+'</span><span class="sub">'+line+'</span></span>'+(here?'<span class="tick">✓</span>':'')+'</button>';
+   }).join('')+(have?'<div class="row btot"><span class="main">'+t('total')+'</span><span class="num">'+tc+' '+t('cars')+' · '+rs(ts)+'</span></div>':'')+'</div>';
+  }
   return '<div class="top"><div class="brand"><span class="drop"></span>'+name+'</div>'+syncHtml()+langToggle()+'</div>'+menu;
  }
  return '<div class="top"><button class="back" id="back" data-go="home">'+t('back')+'</button><div style="flex:1"></div>'+syncHtml()+langToggle()+'</div><h1>'+title+'</h1>';
@@ -504,7 +516,6 @@ function homeView(){
   '</div>'+
  '<div class="tiles">'+
   tile('wash','t-wash','🚗',t('wash'))+tile('cust','t-cust','👥',t('cust'))+tile('exp','t-exp','💸',t('exp'))+tile('close','t-close','💰',t('close'))+'</div>'+
- (D.branches&&D.branches.length>1?'<button class="allb" id="go-branches" data-go="branches"><span>🏢 '+t('allBranches')+' ('+D.branches.length+')</span><span>→</span></button>':'')+
  '<h2>'+t('recent')+'</h2><div class="list">'+rows+'</div>'+
  '<div class="foot"><button id="refresh">↻ '+t('refresh')+'</button><button id="logout">👤 '+esc(D.user.name)+' · '+t('switchUser')+'</button></div>';
 }
@@ -737,7 +748,13 @@ document.addEventListener('click',function(e){
  }
  if(d.go){if(readOnly()&&d.go!=='home'&&d.go!=='cust'&&d.go!=='branches'){toast(t('locked'),true);return}go(d.go);if(d.go==='branches')loadBranches();return}
  if(d.switch){switchShop(d.switch);return}
- if(b.id==='branchbtn'){ui.bmenu=!ui.bmenu;render();return}
+ if(b.id==='branchbtn'){
+  ui.bmenu=!ui.bmenu;render();
+  if(ui.bmenu)call('api',SHOP,token,'branches').then(function(res){
+   if(!ui.bmenu||view!=='home')return;var m={};res.branches.forEach(function(x){m[x.code]=x});ui.bsum=m;render();
+  },function(e){if(errKind(e)==='login')return toLogin();if(ui.bmenu){ui.bsum={};render()}});
+  return;
+ }
  if(b.id==='sync'){flush();refresh();return}
  if(b.id==='refresh'){flush();refresh(true);return}
  if(b.id==='logout'){var tk=token;if(tk)call('logout',SHOP,tk).catch(function(){});toLogin();return}
