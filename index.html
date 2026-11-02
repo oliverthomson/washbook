@@ -156,6 +156,8 @@ h2{font-size:15px;color:var(--muted);font-weight:700;margin:4px 0 -4px;text-tran
 .bmenu .tick{color:var(--wash);font-weight:800}
 .allb{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;font-weight:800;font-size:17px;color:var(--ink)}
 .row.here{background:var(--sunk)}
+.newveh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;background:var(--surface);border:2px dashed var(--wash);border-radius:16px;padding:10px 14px;font-size:16px}
+.linkbtn{border:0;background:transparent;color:var(--wash);font-weight:800;font-size:15px;padding:4px 0;text-decoration:underline}
 .center{text-align:center;padding:40px 0;font-size:20px;font-weight:700;color:var(--muted)}
 </style>
 </head>
@@ -192,6 +194,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
+  newVeh:'New vehicle',nameShort:'name',needVeh:'Type the vehicle number above',noSvc:'No services are ON. Owner: in your Google Sheet, Services tab, set Active to Yes for the services you offer.',
   branches:'Branches',allBranches:'All branches',todayAll:'Today, all branches',closed:'Day closed',notClosed:'Not closed yet',here:'You are here',lic_warn:'Renew soon',lic_grace:'Expired',lic_expired:'Read-only',lic_suspended:'Switched off',total:'Total',
   oldDue:'Old due',setup:'This shop is not set up yet. Contact support.',error:'Could not save',del:'Delete',
   licWarn:'Subscription ends in {n} days. Call {who} {phone} to renew.',
@@ -216,6 +219,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
+  newVeh:'కొత్త వాహనం',nameShort:'పేరు',needVeh:'పైన వాహనం నంబర్ టైప్ చేయండి',noSvc:'ఏ సర్వీస్ ON లో లేదు. ఓనర్: Google Sheet లో Services ట్యాబ్‌లో, మీ సర్వీసులకు Active = Yes పెట్టండి.',
   branches:'బ్రాంచ్‌లు',allBranches:'అన్ని బ్రాంచ్‌లు',todayAll:'ఈరోజు, అన్ని బ్రాంచ్‌లు',closed:'రోజు ముగిసింది',notClosed:'ఇంకా ముగియలేదు',here:'మీరు ఇక్కడ ఉన్నారు',lic_warn:'త్వరలో రెన్యూ',lic_grace:'గడువు ముగిసింది',lic_expired:'చూడటానికి మాత్రమే',lic_suspended:'ఆపివేయబడింది',total:'మొత్తం',
   oldDue:'పాత బాకీ',setup:'ఈ షాప్ ఇంకా సెటప్ కాలేదు. సపోర్ట్‌ను సంప్రదించండి.',error:'సేవ్ కాలేదు',del:'తొలగించు',
   licWarn:'సబ్‌స్క్రిప్షన్ {n} రోజుల్లో ముగుస్తుంది. రెన్యూ కోసం {who} {phone}కి కాల్ చేయండి.',
@@ -524,46 +528,50 @@ function confirmDel(kind,id){
 }
 
 function washView(){
+ // One page: vehicle on top, every service below, then total and payment.
  var h=header(t('wash')),c=ui.cid?cust(ui.cid):null;
+ var q=ui.q.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
  if(c){
-  var free=isFree(c);
   h+='<div class="picked"><div class="main"><div class="plate num" style="font-size:22px">'+esc(c.plate)+'</div>'+
-   '<div class="sub">'+esc(c.name)+(c.name?' · ':'')+esc(c.phone)+' · '+c.visits+' '+t('visits')+'</div>'+
+   '<div class="sub">'+esc(c.name)+(c.name&&c.phone?' · ':'')+esc(c.phone)+' · '+c.visits+' '+t('visits')+'</div>'+
    '<div class="sub">🕒 '+t('lastVisit')+': <b>'+ago(c.last)+'</b></div>'+dots(c.visits)+'</div>'+
    '<button class="x" id="unpick" aria-label="Change">✕</button></div>';
   if(c.due>0)h+='<div class="banner b-bad">'+t('oldDue')+': '+rs(c.due)+'</div>';
-  if(free)h+='<div class="banner b-good">'+t('freeNow')+'</div>';
-  h+='<h2>'+t('pickSvc')+'</h2><div class="svc">'+D.services.map(function(s){
-   return '<button id="s-'+esc(s.id)+'" data-svc="'+esc(s.id)+'" aria-pressed="'+(ui.sel.indexOf(s.id)>=0)+'"><span class="n">'+esc(s.ic)+' '+esc(s[lang])+'</span><span class="p num">'+rs(s.price)+'</span></button>'}).join('')+'</div>';
-  var sum=ui.sel.reduce(function(a,id){var s=svc(id);return a+(s?s.price:0)},0);
-  var on=ui.sel.length>0;
-  h+='<div class="total"><span>'+t('total')+'</span><b class="num">'+(free&&sum?'<s style="opacity:.4;font-size:20px">'+rs(sum)+'</s> ₹0':rs(free?0:sum))+'</b></div>'+
-   '<div class="hint">'+t('payHow')+'</div><div class="paybtns">'+
-   '<button class="b-cash" id="pay-cash" data-pay="cash" '+(on?'':'disabled')+'><span class="ic">💵</span>'+t('cash')+'</button>'+
-   '<button class="b-card" id="pay-card" data-pay="card" '+(on&&!free?'':'disabled')+'><span class="ic">💳</span>'+t('card')+'</button>'+
-   '<button class="b-credit" id="pay-credit" data-pay="credit" '+(on&&!free?'':'disabled')+'><span class="ic">📒</span>'+t('credit')+'</button></div>';
+  if(isFree(c))h+='<div class="banner b-good">'+t('freeNow')+'</div>';
+ } else {
+  h+='<input class="plate-in num" id="q" placeholder="'+t('plateQ')+'" value="'+esc(ui.q)+'" autocomplete="off" autocapitalize="characters" aria-label="'+t('plateHint')+'">';
+  if(q){
+   var m=D.customers.filter(function(x){return normPlate(x.plate).indexOf(q)>=0||String(x.phone).indexOf(q)>=0}).slice(0,3);
+   h+=m.map(function(x){return '<button class="match" data-pick="'+esc(x.id)+'"><div class="main"><div class="plate num">'+esc(x.plate)+'</div>'+
+    '<div class="sub">'+esc(x.name)+(x.name&&x.phone?' · ':'')+esc(x.phone)+' · 🕒 '+ago(x.last)+'</div></div>'+
+    '<span class="sub num">'+x.visits+' '+t('visits')+'</span></button>'}).join('');
+   var exact=m.filter(function(x){return normPlate(x.plate)===q})[0];
+   if(!exact){
+    h+='<div class="newveh"><span>🆕 '+t('newVeh')+': <b class="num">'+esc(ui.q.trim().toUpperCase())+'</b></span>'+
+     (ui.adding?'':'<button class="linkbtn" id="add">+ '+t('phone')+' / '+t('nameShort')+'</button>')+'</div>';
+    if(ui.adding)h+='<div class="list" style="padding:12px;display:flex;flex-direction:column;gap:10px">'+
+     '<input class="field num" id="n-phone" placeholder="'+t('phone')+'" inputmode="tel" value="'+esc(ui.nphone||'')+'">'+
+     '<input class="field" id="n-name" placeholder="'+t('name')+'" value="'+esc(ui.nname||'')+'"></div>';
+   }
+  } else h+='<div class="hint">'+t('plateHint')+'</div>';
+ }
+ // services: always shown
+ if(!D.services.length){
+  h+='<div class="banner b-bad" style="text-align:left">'+t('noSvc')+'</div>';
   return h;
  }
- h+='<input class="plate-in num" id="q" placeholder="'+t('plateQ')+'" value="'+esc(ui.q)+'" autocomplete="off" autocapitalize="characters" aria-label="'+t('plateHint')+'">';
- var q=ui.q.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
- if(q){
-  var m=D.customers.filter(function(c){return normPlate(c.plate).indexOf(q)>=0||String(c.phone).indexOf(q)>=0}).slice(0,5);
-  h+=m.map(function(c){return '<button class="match" data-pick="'+esc(c.id)+'"><div class="main"><div class="plate num">'+esc(c.plate)+'</div>'+
-   '<div class="sub">'+esc(c.name)+(c.name?' · ':'')+esc(c.phone)+'</div><div class="sub">🕒 '+ago(c.last)+'</div>'+dots(c.visits)+'</div>'+
-   '<span class="sub num">'+c.visits+' '+t('visits')+'</span></button>'}).join('');
-  if(!ui.adding)h+='<button class="add" id="add">+ '+t('newCust')+'</button>';
- } else h+='<div class="hint">'+t('plateHint')+'</div>';
- if(ui.adding){
-  var isPhone=/^\d{10,}$/.test(q);
-  h+='<div class="list" style="padding:12px;display:flex;flex-direction:column;gap:10px"><b>'+t('newCust')+'</b>'+
-   '<input class="field num" id="n-plate" placeholder="'+t('plate')+'" autocapitalize="characters" value="'+(isPhone?'':esc(ui.q.toUpperCase()))+'">'+
-   '<input class="field num" id="n-phone" placeholder="'+t('phone')+'" inputmode="tel" value="'+(isPhone?esc(q):'')+'">'+
-   '<input class="field" id="n-name" placeholder="'+t('name')+'">'+
-   '<button class="big" id="n-save" style="background:var(--wash)">'+t('save')+'</button></div>';
- }
+ h+='<h2>'+t('pickSvc')+'</h2><div class="svc">'+D.services.map(function(s){
+  return '<button id="s-'+esc(s.id)+'" data-svc="'+esc(s.id)+'" aria-pressed="'+(ui.sel.indexOf(s.id)>=0)+'"><span class="n">'+esc(s.ic)+' '+esc(s[lang])+'</span><span class="p num">'+rs(s.price)+'</span></button>'}).join('')+'</div>';
+ var free=c?isFree(c):false;
+ var sum=ui.sel.reduce(function(a,id){var s=svc(id);return a+(s?s.price:0)},0);
+ var ready=ui.sel.length>0&&(c||q.length>=3);
+ h+='<div class="total"><span>'+t('total')+'</span><b class="num">'+(free&&sum?'<s style="opacity:.4;font-size:20px">'+rs(sum)+'</s> ₹0':rs(free?0:sum))+'</b></div>'+
+  '<div class="hint">'+(ready?t('payHow'):(!c&&q.length<3?t('needVeh'):t('pickSvc')))+'</div><div class="paybtns">'+
+  '<button class="b-cash" id="pay-cash" data-pay="cash" '+(ready?'':'disabled')+'><span class="ic">💵</span>'+t('cash')+'</button>'+
+  '<button class="b-card" id="pay-card" data-pay="card" '+(ready&&!free?'':'disabled')+'><span class="ic">💳</span>'+t('card')+'</button>'+
+  '<button class="b-credit" id="pay-credit" data-pay="credit" '+(ready&&!free?'':'disabled')+'><span class="ic">📒</span>'+t('credit')+'</button></div>';
  return h;
 }
-
 function custView(){
  var h=header(t('cust')),mo=ui.months||3;
  var away=D.customers.filter(function(c){return c.last&&daysSince(c.last)>=mo*30}).sort(function(a,b){return daysSince(b.last)-daysSince(a.last)});
@@ -685,26 +693,25 @@ function doLogin(){
 }
 
 function saveWash(pay){
- var c=cust(ui.cid);if(!c||!ui.sel.length)return;
+ if(!ui.sel.length)return;
+ var c=cust(ui.cid);
+ if(!c){
+  var raw=ui.q.trim().toUpperCase().replace(/\s+/g,' '),key=normPlate(raw);
+  if(key.length<3)return;
+  c=D.customers.filter(function(x){return normPlate(x.plate)===key})[0];
+  if(!c){
+   var isPhone=/^\d{10,}$/.test(key),phone=(ui.nphone||'').replace(/[^\d+]/g,'')||(isPhone?key:'');
+   c={id:newId('C'),plate:raw,phone:phone,name:(ui.nname||'').trim(),visits:0,due:0,last:null};
+   D.customers.push(c);
+  }
+  ui.cid=c.id;
+ }
  var free=isFree(c),amt=free?0:ui.sel.reduce(function(a,id){var s=svc(id);return a+(s?s.price:0)},0);
  if(free)pay='cash';
  var at=Date.now(),w={id:newId('W'),date:D.today,t:nowHM(),cid:c.id,plate:c.plate,svc:ui.sel.slice(),names:'',amt:amt,pay:pay,free:free,staff:D.user.name};
  D.washes.push(w);c.visits++;c.last=D.today;if(pay==='credit')c.due+=amt;
  enqueue('addWash',{id:w.id,at:at,services:w.svc,pay:pay,customer:{id:c.id,plate:c.plate,phone:c.phone,name:c.name}});
  toast(t('saved'));go('home');
-}
-function saveNewCustomer(){
- var plate=document.getElementById('n-plate').value.trim().toUpperCase().replace(/\s+/g,' ');
- var phone=document.getElementById('n-phone').value.replace(/[^\d+]/g,'');
- var name=document.getElementById('n-name').value.trim();
- if(!plate&&!phone)return;
- var key=normPlate(plate);
- var ex=key?D.customers.filter(function(c){return normPlate(c.plate)===key})[0]:null;
- if(ex){ui.cid=ex.id;ui.adding=false;return render()}
- var c={id:newId('C'),plate:plate||phone,phone:phone,name:name,visits:0,due:0,last:null};
- D.customers.push(c);
- enqueue('addCustomer',{id:c.id,plate:plate,phone:phone,name:name});
- ui.cid=c.id;ui.adding=false;render();
 }
 function saveExpense(){
  var amt=+ui.amt;if(!ui.cat||!(amt>0))return;
@@ -763,7 +770,6 @@ document.addEventListener('click',function(e){
  if(d.pick){ui.cid=d.pick;render();return}
  if(b.id==='unpick'){ui.cid=null;ui.sel=[];render();return}
  if(b.id==='add'){ui.adding=true;render();return}
- if(b.id==='n-save'){saveNewCustomer();return}
  if(d.svc){var i=ui.sel.indexOf(d.svc);if(i<0)ui.sel.push(d.svc);else ui.sel.splice(i,1);render();return}
  if(d.pay){saveWash(d.pay);return}
  if(d.cat){ui.cat=d.cat;render();return}
@@ -792,7 +798,8 @@ document.addEventListener('click',function(e){
 });
 document.addEventListener('input',function(e){
  var id=e.target.id;
- if(id==='q'){ui.q=e.target.value;ui.adding=false;render()}
+ if(id==='q'){ui.q=e.target.value;render()}
+ else if(id==='n-phone'){ui.nphone=e.target.value}else if(id==='n-name'){ui.nname=e.target.value}
  else if(id==='shopcode'){ui.code=e.target.value}
  else if(id==='cq'){ui.q=e.target.value;render()}
  else if(id==='amt'){ui.amt=e.target.value.replace(/[^\d]/g,'');render()}
