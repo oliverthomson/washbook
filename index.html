@@ -158,6 +158,13 @@ h2{font-size:15px;color:var(--muted);font-weight:700;margin:4px 0 -4px;text-tran
 .row.here{background:var(--sunk)}
 .newveh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;background:var(--surface);border:2px dashed var(--wash);border-radius:16px;padding:10px 14px;font-size:16px}
 .linkbtn{border:0;background:transparent;color:var(--wash);font-weight:800;font-size:15px;padding:4px 0;text-decoration:underline}
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vgrid button{border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:12px;display:flex;align-items:center;gap:10px;text-align:left;min-height:64px}
+.vgrid .vic{font-size:28px;flex:none}
+.vgrid .vn{font-weight:800;font-size:16px;line-height:1.2;min-width:0;overflow-wrap:anywhere}
+.vchosen{display:flex;align-items:center;gap:10px;background:var(--surface);border:2px solid var(--wash);border-radius:16px;padding:10px 12px;font-size:17px}
+.vchosen .vic{font-size:28px}
+.vchosen b{flex:1;min-width:0;overflow-wrap:anywhere}
 .center{text-align:center;padding:40px 0;font-size:20px;font-weight:700;color:var(--muted)}
 </style>
 </head>
@@ -194,6 +201,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
+  pickVeh:'Choose vehicle type',change:'Change',otherVeh:'Other services',
   newVeh:'New vehicle',nameShort:'name',needVeh:'Type the vehicle number above',noSvc:'No services are ON. Owner: in your Google Sheet, Services tab, set Active to Yes for the services you offer.',
   branches:'Branches',allBranches:'All branches',todayAll:'Today, all branches',closed:'Day closed',notClosed:'Not closed yet',here:'You are here',lic_warn:'Renew soon',lic_grace:'Expired',lic_expired:'Read-only',lic_suspended:'Switched off',total:'Total',
   oldDue:'Old due',setup:'This shop is not set up yet. Contact support.',error:'Could not save',del:'Delete',
@@ -219,6 +227,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
+  pickVeh:'వాహనం రకం ఎంచుకోండి',change:'మార్చు',otherVeh:'ఇతర సర్వీసులు',
   newVeh:'కొత్త వాహనం',nameShort:'పేరు',needVeh:'పైన వాహనం నంబర్ టైప్ చేయండి',noSvc:'ఏ సర్వీస్ ON లో లేదు. ఓనర్: Google Sheet లో Services ట్యాబ్‌లో, మీ సర్వీసులకు Active = Yes పెట్టండి.',
   branches:'బ్రాంచ్‌లు',allBranches:'అన్ని బ్రాంచ్‌లు',todayAll:'ఈరోజు, అన్ని బ్రాంచ్‌లు',closed:'రోజు ముగిసింది',notClosed:'ఇంకా ముగియలేదు',here:'మీరు ఇక్కడ ఉన్నారు',lic_warn:'త్వరలో రెన్యూ',lic_grace:'గడువు ముగిసింది',lic_expired:'చూడటానికి మాత్రమే',lic_suspended:'ఆపివేయబడింది',total:'మొత్తం',
   oldDue:'పాత బాకీ',setup:'ఈ షాప్ ఇంకా సెటప్ కాలేదు. సపోర్ట్‌ను సంప్రదించండి.',error:'సేవ్ కాలేదు',del:'తొలగించు',
@@ -260,7 +269,21 @@ function saveData(){LS.set('data',D)}
 function saveQ(){LS.set('queue',Q)}
 function cust(id){for(var i=0;i<D.customers.length;i++)if(D.customers[i].id===id)return D.customers[i];return null}
 function svc(id){for(var i=0;i<D.services.length;i++)if(D.services[i].id===id)return D.services[i];return null}
-function svcNames(w){var n=w.svc.map(function(id){var s=svc(id);return s?s[lang]:''}).filter(String);return n.length?n.join(' + '):w.names}
+function svcNames(w){
+ var ss=w.svc.map(svc).filter(Boolean);if(!ss.length)return w.names;
+ var v=ss[0].vt?(lang==='te'?ss[0].vtte:ss[0].vt)+' · ':'';
+ return v+ss.map(function(s){return s[lang]}).join(' + ');
+}
+/* services grouped by vehicle type, in the order of the Services sheet */
+function vtGroups(){
+ var out=[],idx={};
+ D.services.forEach(function(s){
+  var k=s.vt||'';
+  if(!(k in idx)){idx[k]=out.length;out.push({key:k,en:k||t('otherVeh'),te:k?(s.vtte||k):t('otherVeh'),ic:k?(s.vic||'🚗'):'🧽',list:[]})}
+  out[idx[k]].list.push(s);
+ });
+ return out;
+}
 function normPlate(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 function isoLocal(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function daysSince(d){if(!d)return null;var base=D&&D.today?D.today:isoLocal(new Date());return Math.round((new Date(base+'T00:00:00')-new Date(d+'T00:00:00'))/864e5)}
@@ -560,7 +583,16 @@ function washView(){
   h+='<div class="banner b-bad" style="text-align:left">'+t('noSvc')+'</div>';
   return h;
  }
- h+='<h2>'+t('pickSvc')+'</h2><div class="svc">'+D.services.map(function(s){
+ var groups=vtGroups(),g=groups.length===1?groups[0]:groups.filter(function(x){return x.key===ui.vt})[0];
+ if(groups.length>1){
+  if(!g){
+   h+='<h2>'+t('pickVeh')+'</h2><div class="vgrid">'+groups.map(function(x){
+    return '<button data-vt="'+esc(x.key)+'"><span class="vic">'+esc(x.ic)+'</span><span class="vn">'+esc(lang==='te'?x.te:x.en)+'</span></button>'}).join('')+'</div>';
+   return h;
+  }
+  h+='<div class="vchosen"><span class="vic">'+esc(g.ic)+'</span><b>'+esc(lang==='te'?g.te:g.en)+'</b><button class="x" id="vt-change">'+t('change')+'</button></div>';
+ }
+ h+='<h2>'+t('pickSvc')+'</h2><div class="svc">'+g.list.map(function(s){
   return '<button id="s-'+esc(s.id)+'" data-svc="'+esc(s.id)+'" aria-pressed="'+(ui.sel.indexOf(s.id)>=0)+'"><span class="n">'+esc(s.ic)+' '+esc(s[lang])+'</span><span class="p num">'+rs(s.price)+'</span></button>'}).join('')+'</div>';
  var free=c?isFree(c):false;
  var sum=ui.sel.reduce(function(a,id){var s=svc(id);return a+(s?s.price:0)},0);
@@ -767,7 +799,11 @@ document.addEventListener('click',function(e){
  if(b.id==='logout'){var tk=token;if(tk)call('logout',SHOP,tk).catch(function(){});toLogin();return}
  if(d.tab){ui.tab=d.tab;ui.q='';render();return}
  if(d.mo){ui.months=+d.mo;render();return}
- if(d.pick){ui.cid=d.pick;render();return}
+ if(d.pick){ui.cid=d.pick;var pc=cust(d.pick);ui.sel=[];
+  if(pc&&pc.vehicle&&vtGroups().some(function(x){return x.key===pc.vehicle}))ui.vt=pc.vehicle;
+  render();return}
+ if(d.vt!==undefined){ui.vt=d.vt;ui.sel=[];render();return}
+ if(b.id==='vt-change'){ui.vt=null;ui.sel=[];render();return}
  if(b.id==='unpick'){ui.cid=null;ui.sel=[];render();return}
  if(b.id==='add'){ui.adding=true;render();return}
  if(d.svc){var i=ui.sel.indexOf(d.svc);if(i<0)ui.sel.push(d.svc);else ui.sel.splice(i,1);render();return}
