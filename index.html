@@ -46,6 +46,9 @@ button{cursor:pointer}
 
 .today{background:var(--surface);border-radius:18px;padding:14px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border:1px solid var(--line)}
 .today.two{grid-template-columns:repeat(2,1fr)}
+.today.one{grid-template-columns:1fr}
+.duebar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.duebar .collect{margin-top:0;font-size:15px;padding:8px 12px}
 .today .k{font-size:13px;color:var(--muted);font-weight:600}
 .today .v{font-size:23px;font-weight:800}
 .today .date{grid-column:1/-1;font-size:14px;color:var(--muted);font-weight:600}
@@ -202,6 +205,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
+  blindHint:'Count the cash in the box and save. The owner checks it.',ownerChecks:'The owner will check the cash.',countedBy:'Counted by {by} at {at}',
   oldServer:'Apps Script is still on the old version ({v}). In Apps Script: Deploy → Manage deployments → Edit → Version: New version → Deploy.',
   pickVeh:'Choose vehicle type',change:'Change',otherVeh:'Other services',
   newVeh:'New vehicle',nameShort:'name',needVeh:'Type the vehicle number above',noSvc:'No services are ON. Owner: in your Google Sheet, Services tab, set Active to Yes for the services you offer.',
@@ -229,6 +233,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
+  blindHint:'పెట్టెలో నగదు లెక్కించి సేవ్ చేయండి. ఓనర్ చెక్ చేస్తారు.',ownerChecks:'ఓనర్ నగదు చెక్ చేస్తారు.',countedBy:'{by} {at}కి లెక్కించారు',
   oldServer:'Apps Script ఇంకా పాత వెర్షన్‌లో ఉంది ({v}). Apps Script లో: Deploy → Manage deployments → Edit → Version: New version → Deploy.',
   pickVeh:'వాహనం రకం ఎంచుకోండి',change:'మార్చు',otherVeh:'ఇతర సర్వీసులు',
   newVeh:'కొత్త వాహనం',nameShort:'పేరు',needVeh:'పైన వాహనం నంబర్ టైప్ చేయండి',noSvc:'ఏ సర్వీస్ ON లో లేదు. ఓనర్: Google Sheet లో Services ట్యాబ్‌లో, మీ సర్వీసులకు Active = Yes పెట్టండి.',
@@ -246,7 +251,7 @@ var T={
    Paste your Apps Script Web app URL (ends in /exec) here.
    ========================================================= */
 var APP_URL='https://script.google.com/macros/s/AKfycbwW24Q07XEZu6LPLIUu4K8tEw_HjYYRxjsZoBzhzycrCetpC5A2r-YpENNc2BB6FWz12A/exec';
-var APP_VERSION='2.4';   // must match APP_VERSION in Code.gs
+var APP_VERSION='2.5';   // must match APP_VERSION in Code.gs
 
 function cleanCode(c){return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 var SHOP=(function(){
@@ -293,6 +298,7 @@ function isoLocal(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(
 function daysSince(d){if(!d)return null;var base=D&&D.today?D.today:isoLocal(new Date());return Math.round((new Date(base+'T00:00:00')-new Date(d+'T00:00:00'))/864e5)}
 function ago(d){var n=daysSince(d);if(n===null)return t('never');if(n<=0)return t('d0');if(n===1)return t('d1');if(n<30)return t('dN').replace('{n}',n);var m=Math.floor(n/30);return m===1?t('m1'):t('mN').replace('{n}',m)}
 function waNum(p){var d=String(p).replace(/\D/g,'');var cc=(D&&D.settings.countryCode)||'91';if(d.charAt(0)==='0')d=d.slice(1);if(d.length===10)d=cc+d;return d}
+function isMgr(){return !!(D&&D.user&&D.user.role!=='owner')}
 function isFree(c){var n=D.settings.loyaltyEvery;return n>0&&c.visits%n===n-1}
 function minsAgo(hm){var a=nowHM().split(':'),b=String(hm).split(':');return (+a[0]*60+ +a[1])-(+b[0]*60+ +b[1])}
 function canDelete(e){return D.user.role==='owner'||(e.staff===D.user.name&&minsAgo(e.t)<=15)}
@@ -533,7 +539,7 @@ function homeView(){
  var rows=D.washes.slice().reverse().map(function(w){
   var c=cust(w.cid)||{plate:w.plate};
   var main='<div class="main"><div class="plate num">'+esc(c.plate)+'</div><div class="sub">'+esc(w.t)+' · '+esc(svcNames(w))+' · '+esc(w.staff)+'</div></div>'+
-   '<div class="amt num">'+(w.free?'FREE':rs(w.amt))+'<br>'+payPill(w.pay)+'</div>';
+   '<div class="amt num">'+(w.free?'FREE<br>':(isMgr()?'':rs(w.amt)+'<br>'))+payPill(w.pay)+'</div>';
   var h='<div><button class="row" data-delask="wash:'+esc(w.id)+'">'+main+'</button>';
   if(ui.del==='wash:'+w.id)h+=confirmDel('wash',w.id);
   return h+'</div>';
@@ -542,12 +548,16 @@ function homeView(){
  var ro=readOnly(),tile=function(id,cls,ic,lb){return '<button class="tile '+cls+'" id="go-'+id+'" data-go="'+id+'" '+(ro&&id!=='cust'?'disabled':'')+'><span class="ic">'+(ro&&id!=='cust'?'🔒':ic)+'</span><span class="lb">'+lb+'</span></button>'};
  var old=D.user.role==='owner'&&String(D.version||'0')!==APP_VERSION;
  return header()+licBanner()+(old?'<div class="banner b-bad" style="text-align:left">⚠️ '+t('oldServer').replace('{v}',esc(D.version||'?'))+'</div>':'')+
- '<div class="today two"><div class="date">'+t('today')+' · '+esc(d)+'</div>'+
-  '<div><div class="k">'+t('cars')+'</div><div class="v num">'+x.cars+'</div></div>'+
-  '<div><div class="k">'+t('sales')+'</div><div class="v num">'+rs(x.sales)+'</div></div>'+
-  '</div>'+
- '<div class="tiles">'+
-  tile('wash','t-wash','🚗',t('wash'))+tile('cust','t-cust','👥',t('cust'))+tile('exp','t-exp','💸',t('exp'))+tile('close','t-close','💰',t('close'))+'</div>'+
+ (isMgr()
+  // manager: how many vehicles, nothing about money; only New Wash and Close Day
+  ?'<div class="today one"><div class="date">'+t('today')+' · '+esc(d)+'</div><div><div class="k">'+t('cars')+'</div><div class="v num">'+x.cars+'</div></div></div>'+
+   '<div class="tiles">'+tile('wash','t-wash','🚗',t('wash'))+tile('close','t-close','💰',t('close'))+'</div>'
+  :'<div class="today two"><div class="date">'+t('today')+' · '+esc(d)+'</div>'+
+   '<div><div class="k">'+t('cars')+'</div><div class="v num">'+x.cars+'</div></div>'+
+   '<div><div class="k">'+t('sales')+'</div><div class="v num">'+rs(x.sales)+'</div></div>'+
+   '</div>'+
+   '<div class="tiles">'+
+   tile('wash','t-wash','🚗',t('wash'))+tile('cust','t-cust','👥',t('cust'))+tile('exp','t-exp','💸',t('exp'))+tile('close','t-close','💰',t('close'))+'</div>')+
  '<h2>'+t('recent')+'</h2><div class="list">'+rows+'</div>'+
  '<div class="foot"><button id="refresh">↻ '+t('refresh')+'</button><button id="logout">👤 '+esc(D.user.name)+' · '+t('switchUser')+'</button></div><div class="ver">WashBook '+APP_VERSION+' · '+esc(D.version||'?')+'</div>';
 }
@@ -564,7 +574,10 @@ function washView(){
    '<div class="sub">'+esc(c.name)+(c.name&&c.phone?' · ':'')+esc(c.phone)+' · '+c.visits+' '+t('visits')+'</div>'+
    '<div class="sub">🕒 '+t('lastVisit')+': <b>'+ago(c.last)+'</b></div>'+dots(c.visits)+'</div>'+
    '<button class="x" id="unpick" aria-label="Change">✕</button></div>';
-  if(c.due>0)h+='<div class="banner b-bad">'+t('oldDue')+': '+rs(c.due)+'</div>';
+  if(c.due>0){
+   h+='<div class="banner b-bad duebar"><span>'+t('oldDue')+': '+rs(c.due)+'</span><button class="collect" data-colask="'+esc(c.id)+'">💵 '+t('collect')+'</button></div>';
+   if(ui.col===c.id)h+='<div class="confirm go"><span>'+t('collectQ').replace('{amt}',rs(c.due))+'</span><button class="yes" data-col="'+esc(c.id)+'">'+t('yes')+'</button><button class="no" data-colno="1">'+t('no')+'</button></div>';
+  }
   if(isFree(c))h+='<div class="banner b-good">'+t('freeNow')+'</div>';
  } else {
   h+='<input class="plate-in num" id="q" placeholder="'+t('plateQ')+'" value="'+esc(ui.q)+'" autocomplete="off" autocapitalize="characters" aria-label="'+t('plateHint')+'">';
@@ -663,6 +676,10 @@ function expView(){
 
 function closeView(){
  var x=totals(),cnt=getCounts(),h=header(t('close'));
+ if(isMgr())return closeViewMgr(x,cnt,h);
+ // counted on another phone (e.g. by the manager): show that count
+ var srv=D.close&&x.counted===0&&D.close.counted!=null;
+ if(srv){x.counted=D.close.counted;x.expected=D.close.expected}
  h+='<div class="list sum">'+
   (x.opening?'<div class="row"><div class="main">🪙 '+t('opening')+'</div><div class="amt num">'+rs(x.opening)+'</div></div>':'')+
   '<div class="row"><div class="main">💵 '+t('cashSales')+'</div><div class="amt num">+ '+rs(x.cash)+'</div></div>'+
@@ -678,9 +695,10 @@ function closeView(){
  var diff=x.counted-x.expected;
  h+='<div class="total"><span>'+t('counted')+'</span><b class="num">'+rs(x.counted)+'</b></div>';
  if(x.counted>0){
+  if(srv)h+='<div class="sub" style="font-weight:700">'+t('countedBy').replace('{by}',esc(D.close.by)).replace('{at}',esc(String(D.close.at).slice(11)))+'</div>';
   h+=diff===0?'<div class="result b-good"><div class="r1">'+t('match')+'</div></div>'
    :'<div class="result b-bad"><div class="r1">'+(diff<0?t('short'):t('extra'))+'</div><div class="r2 num">'+rs(Math.abs(diff))+'</div></div>';
-  h+='<button class="big" id="closeday" style="background:var(--close)">💾 '+t('saveClose')+'</button>';
+  if(!srv)h+='<button class="big" id="closeday" style="background:var(--close)">💾 '+t('saveClose')+'</button>';
  }
  if(D.close){
   h+='<div class="banner b-good">✓ '+t('closedAt').replace('{by}',esc(D.close.by)).replace('{at}',esc(String(D.close.at).slice(11)))+'</div>';
@@ -692,8 +710,32 @@ function closeView(){
  }
  return h;
 }
+function countLine(){
+ var c=getCounts();return NOTES.filter(function(n){return c[n]}).map(function(n){return n+'×'+c[n]}).join(', ');
+}
+function closeViewMgr(x,cnt,h){
+ // blind count: the manager counts and saves; he is not told what the cash should be
+ h+='<div class="sub" style="font-size:15px">'+t('blindHint')+'</div>';
+ h+='<h2>'+t('count')+'</h2><div class="list">'+NOTES.map(function(n){
+  return '<div class="row"><span class="note num">'+n+'</span><div class="step"><button data-dec="'+n+'" aria-label="minus '+n+'">−</button>'+
+   '<span class="c num">'+(cnt[n]||0)+'</span><button data-inc="'+n+'" aria-label="plus '+n+'">+</button></div><div style="flex:1"></div>'+
+   '<span class="sub-amt num">'+(n*(cnt[n]||0))+'</span></div>'}).join('')+'</div>';
+ h+='<div class="total"><span>'+t('counted')+'</span><b class="num">'+rs(x.counted)+'</b></div>';
+ if(x.counted>0)h+='<button class="big" id="closeday" style="background:var(--close)">💾 '+t('saveClose')+'</button>';
+ if(D.close){
+  h+='<div class="banner b-good">✓ '+t('closedAt').replace('{by}',esc(D.close.by)).replace('{at}',esc(String(D.close.at).slice(11)))+'<br><span style="font-weight:600">'+t('ownerChecks')+'</span></div>';
+  if(x.counted>0){
+   var rep='🚗 '+D.settings.shopName+' — '+D.today+'\n'+T.en.cars+' / '+T.te.cars+': '+x.cars+'\n'+T.en.counted+' / '+T.te.counted+': ₹'+x.counted+(countLine()?' ('+countLine()+')':'')+'\n👤 '+D.user.name;
+   if(String(D.settings.ownerPhone).replace(/\D/g,'').length>=10)
+    h+='<a class="big" style="background:var(--wa)" target="_blank" rel="noopener" href="https://wa.me/'+waNum(D.settings.ownerPhone)+'?text='+encodeURIComponent(rep)+'">💬 '+t('sendOwner')+'</a>';
+  }
+ }
+ return h;
+}
 function makeReport(){
- var x=totals(),diff=x.counted-x.expected;
+ var x=totals();
+ if(D.close&&x.counted===0&&D.close.counted!=null){x.counted=D.close.counted;x.expected=D.close.expected}
+ var diff=x.counted-x.expected;
  var L=function(k){return T.en[k]+' / '+T.te[k]};
  return '🚗 '+D.settings.shopName+' — '+D.today+'\n'+
   L('cars')+': '+x.cars+'\n'+L('cashSales')+': '+x.cash+'\n'+L('cardSales')+': '+x.card+'\n'+L('creditSales')+': '+x.credit+'\n'+
@@ -775,7 +817,8 @@ function deleteEntry(kind,id){
 }
 function closeDay(){
  var x=totals();
- D.close={date:D.today,expected:x.expected,counted:x.counted,diff:x.counted-x.expected,by:D.user.name,at:D.today+' '+nowHM()};
+ D.close=isMgr()?{date:D.today,by:D.user.name,at:D.today+' '+nowHM()}
+  :{date:D.today,expected:x.expected,counted:x.counted,diff:x.counted-x.expected,by:D.user.name,at:D.today+' '+nowHM()};
  enqueue('closeDay',{counts:getCounts()});
  toast(t('saved'));render();
 }
@@ -790,6 +833,7 @@ document.addEventListener('click',function(e){
   else if((ui.pin||'').length<8)ui.pin=(ui.pin||'')+d.key;
   pinErr='';render();return;
  }
+ if(d.go&&isMgr()&&['home','wash','close'].indexOf(d.go)<0)return;
  if(d.go){if(readOnly()&&d.go!=='home'&&d.go!=='cust'&&d.go!=='branches'){toast(t('locked'),true);return}go(d.go);if(d.go==='branches')loadBranches();return}
  if(d.switch){switchShop(d.switch);return}
  if(b.id==='branchbtn'){
