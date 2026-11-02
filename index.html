@@ -165,6 +165,7 @@ h2{font-size:15px;color:var(--muted);font-weight:700;margin:4px 0 -4px;text-tran
 .vchosen{display:flex;align-items:center;gap:10px;background:var(--surface);border:2px solid var(--wash);border-radius:16px;padding:10px 12px;font-size:17px}
 .vchosen .vic{font-size:28px}
 .vchosen b{flex:1;min-width:0;overflow-wrap:anywhere}
+.ver{text-align:center;font-size:12px;color:var(--muted);margin-top:-6px}
 .center{text-align:center;padding:40px 0;font-size:20px;font-weight:700;color:var(--muted)}
 </style>
 </head>
@@ -201,6 +202,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
+  oldServer:'Apps Script is still on the old version ({v}). In Apps Script: Deploy → Manage deployments → Edit → Version: New version → Deploy.',
   pickVeh:'Choose vehicle type',change:'Change',otherVeh:'Other services',
   newVeh:'New vehicle',nameShort:'name',needVeh:'Type the vehicle number above',noSvc:'No services are ON. Owner: in your Google Sheet, Services tab, set Active to Yes for the services you offer.',
   branches:'Branches',allBranches:'All branches',todayAll:'Today, all branches',closed:'Day closed',notClosed:'Not closed yet',here:'You are here',lic_warn:'Renew soon',lic_grace:'Expired',lic_expired:'Read-only',lic_suspended:'Switched off',total:'Total',
@@ -227,6 +229,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
+  oldServer:'Apps Script ఇంకా పాత వెర్షన్‌లో ఉంది ({v}). Apps Script లో: Deploy → Manage deployments → Edit → Version: New version → Deploy.',
   pickVeh:'వాహనం రకం ఎంచుకోండి',change:'మార్చు',otherVeh:'ఇతర సర్వీసులు',
   newVeh:'కొత్త వాహనం',nameShort:'పేరు',needVeh:'పైన వాహనం నంబర్ టైప్ చేయండి',noSvc:'ఏ సర్వీస్ ON లో లేదు. ఓనర్: Google Sheet లో Services ట్యాబ్‌లో, మీ సర్వీసులకు Active = Yes పెట్టండి.',
   branches:'బ్రాంచ్‌లు',allBranches:'అన్ని బ్రాంచ్‌లు',todayAll:'ఈరోజు, అన్ని బ్రాంచ్‌లు',closed:'రోజు ముగిసింది',notClosed:'ఇంకా ముగియలేదు',here:'మీరు ఇక్కడ ఉన్నారు',lic_warn:'త్వరలో రెన్యూ',lic_grace:'గడువు ముగిసింది',lic_expired:'చూడటానికి మాత్రమే',lic_suspended:'ఆపివేయబడింది',total:'మొత్తం',
@@ -243,6 +246,7 @@ var T={
    Paste your Apps Script Web app URL (ends in /exec) here.
    ========================================================= */
 var APP_URL='https://script.google.com/macros/s/AKfycbwW24Q07XEZu6LPLIUu4K8tEw_HjYYRxjsZoBzhzycrCetpC5A2r-YpENNc2BB6FWz12A/exec';
+var APP_VERSION='2.4';   // must match APP_VERSION in Code.gs
 
 function cleanCode(c){return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 var SHOP=(function(){
@@ -536,7 +540,8 @@ function homeView(){
  }).join('');
  if(!rows)rows='<div class="row"><div class="main sub">'+t('noWash')+'</div></div>';
  var ro=readOnly(),tile=function(id,cls,ic,lb){return '<button class="tile '+cls+'" id="go-'+id+'" data-go="'+id+'" '+(ro&&id!=='cust'?'disabled':'')+'><span class="ic">'+(ro&&id!=='cust'?'🔒':ic)+'</span><span class="lb">'+lb+'</span></button>'};
- return header()+licBanner()+
+ var old=D.user.role==='owner'&&String(D.version||'0')!==APP_VERSION;
+ return header()+licBanner()+(old?'<div class="banner b-bad" style="text-align:left">⚠️ '+t('oldServer').replace('{v}',esc(D.version||'?'))+'</div>':'')+
  '<div class="today two"><div class="date">'+t('today')+' · '+esc(d)+'</div>'+
   '<div><div class="k">'+t('cars')+'</div><div class="v num">'+x.cars+'</div></div>'+
   '<div><div class="k">'+t('sales')+'</div><div class="v num">'+rs(x.sales)+'</div></div>'+
@@ -544,7 +549,7 @@ function homeView(){
  '<div class="tiles">'+
   tile('wash','t-wash','🚗',t('wash'))+tile('cust','t-cust','👥',t('cust'))+tile('exp','t-exp','💸',t('exp'))+tile('close','t-close','💰',t('close'))+'</div>'+
  '<h2>'+t('recent')+'</h2><div class="list">'+rows+'</div>'+
- '<div class="foot"><button id="refresh">↻ '+t('refresh')+'</button><button id="logout">👤 '+esc(D.user.name)+' · '+t('switchUser')+'</button></div>';
+ '<div class="foot"><button id="refresh">↻ '+t('refresh')+'</button><button id="logout">👤 '+esc(D.user.name)+' · '+t('switchUser')+'</button></div><div class="ver">WashBook '+APP_VERSION+' · '+esc(D.version||'?')+'</div>';
 }
 function confirmDel(kind,id){
  return '<div class="confirm"><span>'+t('delQ')+'</span><button class="yes" data-del="'+kind+':'+esc(id)+'">'+t('del')+'</button><button class="no" data-delno="1">'+t('no')+'</button></div>';
