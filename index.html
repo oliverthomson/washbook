@@ -47,6 +47,18 @@ button{cursor:pointer}
 .today{background:var(--surface);border-radius:18px;padding:14px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border:1px solid var(--line)}
 .today.two{grid-template-columns:repeat(2,1fr)}
 .today.one{grid-template-columns:1fr}
+.mhello{display:flex;flex-direction:column;gap:2px;font-size:24px;font-weight:800;line-height:1.2;padding:2px 2px 0}
+.mhello span{font-size:14px;font-weight:600;color:var(--muted)}
+.mbig{border:0;border-radius:24px;background:var(--wash);color:var(--on);display:flex;align-items:center;gap:16px;padding:22px 20px;min-height:150px;text-align:left;box-shadow:0 4px 0 rgba(0,0,0,.18),0 10px 24px rgba(10,120,160,.25);width:100%}
+.mbig:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.mbig:disabled{opacity:.45}
+.mic{font-size:58px;line-height:1;flex:none}
+.mtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.mlb{font-size:30px;font-weight:800;line-height:1.1}
+.msub{font-size:15px;font-weight:600;opacity:.9}
+.marr{font-size:48px;font-weight:300;line-height:1;opacity:.85}
+.mcount{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 16px;font-size:17px;font-weight:700;color:var(--muted)}
+.mcount b{font-size:28px;color:var(--ink)}
 .duebar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .duebar .collect{margin-top:0;font-size:15px;padding:8px 12px}
 .today .k{font-size:13px;color:var(--muted);font-weight:600}
@@ -205,6 +217,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
+  hello:'Hello, {n}',tapToAdd:'Tap to add a vehicle',vehToday:'Vehicles today',lockedPin:'Locked. Enter your PIN',
   blindHint:'Count the cash in the box and save. The owner checks it.',ownerChecks:'The owner will check the cash.',countedBy:'Counted by {by} at {at}',
   oldServer:'Apps Script is still on the old version ({v}). In Apps Script: Deploy → Manage deployments → Edit → Version: New version → Deploy.',
   pickVeh:'Choose vehicle type',change:'Change',otherVeh:'Other services',
@@ -233,6 +246,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
+  hello:'నమస్తే, {n}',tapToAdd:'వాహనం జోడించడానికి నొక్కండి',vehToday:'ఈరోజు వాహనాలు',lockedPin:'లాక్ అయింది. మీ PIN నమోదు చేయండి',
   blindHint:'పెట్టెలో నగదు లెక్కించి సేవ్ చేయండి. ఓనర్ చెక్ చేస్తారు.',ownerChecks:'ఓనర్ నగదు చెక్ చేస్తారు.',countedBy:'{by} {at}కి లెక్కించారు',
   oldServer:'Apps Script ఇంకా పాత వెర్షన్‌లో ఉంది ({v}). Apps Script లో: Deploy → Manage deployments → Edit → Version: New version → Deploy.',
   pickVeh:'వాహనం రకం ఎంచుకోండి',change:'మార్చు',otherVeh:'ఇతర సర్వీసులు',
@@ -251,7 +265,7 @@ var T={
    Paste your Apps Script Web app URL (ends in /exec) here.
    ========================================================= */
 var APP_URL='https://script.google.com/macros/s/AKfycbwW24Q07XEZu6LPLIUu4K8tEw_HjYYRxjsZoBzhzycrCetpC5A2r-YpENNc2BB6FWz12A/exec';
-var APP_VERSION='2.5';   // must match APP_VERSION in Code.gs
+var APP_VERSION='2.6';   // must match APP_VERSION in Code.gs
 
 function cleanCode(c){return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 var SHOP=(function(){
@@ -467,11 +481,13 @@ function pickView(){
   '<button class="big" type="submit" style="background:var(--wash);max-width:260px">'+t('open')+'</button></form>';
 }
 function openShop(code,carryToken){
+ var carryPin=carryToken?LS.get('pinh',''):'';
  SHOP=code;
  try{localStorage.setItem('washbook_shop',code)}catch(e){}
  try{history.replaceState(null,'',location.pathname+'?shop='+code)}catch(e){}
  lang=LS.get('lang',lang);token=LS.get('token',null);D=LS.get('data',null);Q=LS.get('queue',[]);
  if(carryToken&&!token){token=carryToken;LS.set('token',token)}
+ if(carryToken){LS.set('pinh',carryPin);touchActive(true)}   // the owner stays unlocked when he switches branch
  fatal='';net='ok';boot();
 }
 function readOnly(){return !!(D&&D.licence&&D.licence.state==='expired')}
@@ -482,7 +498,15 @@ function licBanner(){
  if(l.state==='expired')return '<div class="banner b-bad">🔒 '+supportText('licExpired')+'</div>';
  return '';
 }
-function toLogin(){token=null;LS.del('token');view='login';ui={pin:''};render()}
+function toLogin(){token=null;LS.del('token');LS.del('pinh');locked=false;view='login';ui={pin:''};render()}
+
+/* ---------- lock after 5 minutes without use; the PIN is checked on the phone, so it unlocks offline too ---------- */
+var IDLE_MS=5*60*1000,locked=false;
+function pinHash(p){var h=2166136261,str='wb:'+p;for(var i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),16777619)>>>0}return h.toString(36)}
+function touchActive(force){var n=Date.now();if(force||n-(touchActive.l||0)>5000){touchActive.l=n;LS.set('active',n)}}
+function idleTooLong(){var a=LS.get('active',0);return !a||Date.now()-a>IDLE_MS}
+function lockApp(){if(!token||locked)return;locked=true;view='login';ui={pin:''};pinErr='';render()}
+function unlock(){locked=false;touchActive(true);pinErr='';if(D)go('home');else{view='loading';render();refresh(true)}}
 
 /* ============ Screens ============ */
 function langToggle(){
@@ -528,7 +552,7 @@ function loginView(){
  var keys=['1','2','3','4','5','6','7','8','9','⌫','0','✓'];
  return '<div class="top"><div style="flex:1"></div>'+langToggle()+'</div>'+
   '<div class="pinbox"><div class="drop" style="width:46px;height:46px"></div><div class="shop">'+esc(shop)+'</div>'+
-  '<div style="font-weight:700">'+t('enterPin')+'</div><div class="pindots">'+d+'</div>'+
+  '<div style="font-weight:700">'+(locked?'🔒 '+t('lockedPin'):t('enterPin'))+'</div><div class="pindots">'+d+'</div>'+
   '<div class="err" role="alert">'+(pinErr?t('wrongPin'):(ui.busy?t('loading'):''))+'</div>'+
   '<div class="pad">'+keys.map(function(k){return '<button data-key="'+k+'" class="'+(k==='✓'?'okk':'')+'" aria-label="'+(k==='⌫'?'delete':k==='✓'?'enter':k)+'">'+k+'</button>'}).join('')+'</div></div>';
 }
@@ -549,9 +573,11 @@ function homeView(){
  var old=D.user.role==='owner'&&String(D.version||'0')!==APP_VERSION;
  return header()+licBanner()+(old?'<div class="banner b-bad" style="text-align:left">⚠️ '+t('oldServer').replace('{v}',esc(D.version||'?'))+'</div>':'')+
  (isMgr()
-  // manager: how many vehicles, nothing about money; only New Wash and Close Day
-  ?'<div class="today one"><div class="date">'+t('today')+' · '+esc(d)+'</div><div><div class="k">'+t('cars')+'</div><div class="v num">'+x.cars+'</div></div></div>'+
-   '<div class="tiles">'+tile('wash','t-wash','🚗',t('wash'))+tile('close','t-close','💰',t('close'))+'</div>'
+  // manager: one big New Wash button and today's vehicles; nothing about money
+  ?'<div class="mhello">'+t('hello').replace('{n}',esc(D.user.name))+'<span>'+esc(d)+'</span></div>'+
+   '<button class="mbig" id="go-wash" data-go="wash" '+(ro?'disabled':'')+'><span class="mic">'+(ro?'🔒':'🚗')+'</span>'+
+    '<span class="mtx"><span class="mlb">'+t('wash')+'</span><span class="msub">'+t('tapToAdd')+'</span></span><span class="marr">›</span></button>'+
+   '<div class="mcount"><span>'+t('vehToday')+'</span><b class="num">'+x.cars+'</b></div>'
   :'<div class="today two"><div class="date">'+t('today')+' · '+esc(d)+'</div>'+
    '<div><div class="k">'+t('cars')+'</div><div class="v num">'+x.cars+'</div></div>'+
    '<div><div class="k">'+t('sales')+'</div><div class="v num">'+rs(x.sales)+'</div></div>'+
@@ -758,16 +784,18 @@ function render(){
  app.innerHTML=html;
  if(fid){var el=document.getElementById(fid);if(el&&el.tagName==='INPUT'){el.focus();try{el.setSelectionRange(pos,pos)}catch(e){}}}
 }
-function go(v){view=v;ui={sel:[],q:'',cid:null,adding:false,cat:null,amt:'',tab:'all',months:3,offer:null,del:null,col:null};render();window.scrollTo(0,0)}
+function go(v){if(locked&&v!=='login'){return render()}view=v;ui={sel:[],q:'',cid:null,adding:false,cat:null,amt:'',tab:'all',months:3,offer:null,del:null,col:null};render();window.scrollTo(0,0)}
 
 /* ============ Actions ============ */
 function doLogin(){
  var pin=ui.pin||'';if(pin.length<4||ui.busy)return;
+ if(locked&&token&&LS.get('pinh','')===pinHash(pin)){ui.pin='';return unlock()}   // same person: no internet needed
  ui.busy=true;pinErr='';render();
  call('login',SHOP,pin).then(function(res){
   ui.busy=false;
   if(!res.ok){if(res.reason==='suspended'){LS.set('licence',res.licence);return stopApp('suspended')}pinErr='1';ui.pin='';return render()}
-  token=res.token;LS.set('token',token);D=res.data;saveData();LS.set('licence',D.licence);pinErr='';go('home');flush();
+  token=res.token;LS.set('token',token);LS.set('pinh',pinHash(pin));D=res.data;saveData();LS.set('licence',D.licence);pinErr='';
+  locked=false;touchActive(true);go('home');flush();
  },function(e){ui.busy=false;var k=errKind(e);if(k==='setup'){fatal=t('setup');return render()}if(k==='noshop')return stopApp('noshop');toast(t('error'),true);render()});
 }
 
@@ -833,7 +861,7 @@ document.addEventListener('click',function(e){
   else if((ui.pin||'').length<8)ui.pin=(ui.pin||'')+d.key;
   pinErr='';render();return;
  }
- if(d.go&&isMgr()&&['home','wash','close'].indexOf(d.go)<0)return;
+ if(d.go&&isMgr()&&['home','wash'].indexOf(d.go)<0)return;
  if(d.go){if(readOnly()&&d.go!=='home'&&d.go!=='cust'&&d.go!=='branches'){toast(t('locked'),true);return}go(d.go);if(d.go==='branches')loadBranches();return}
  if(d.switch){switchShop(d.switch);return}
  if(b.id==='branchbtn'){
@@ -898,7 +926,9 @@ document.addEventListener('submit',function(e){
 document.addEventListener('keydown',function(e){
  if(view==='login'){if(/^\d$/.test(e.key)){ui.pin=(ui.pin||'')+e.key;pinErr='';render()}else if(e.key==='Backspace'){ui.pin=(ui.pin||'').slice(0,-1);render()}else if(e.key==='Enter')doLogin()}
 });
-document.addEventListener('visibilitychange',function(){if(!document.hidden){flush();refresh()}});
+document.addEventListener('visibilitychange',function(){if(!document.hidden){if(token&&idleTooLong())lockApp();flush();refresh()}});
+['pointerdown','keydown','input','touchstart'].forEach(function(ev){document.addEventListener(ev,function(){if(token&&!locked)touchActive()},true)});
+setInterval(function(){if(token&&!locked&&idleTooLong())lockApp()},15000);
 window.addEventListener('online',function(){flush()});
 setInterval(function(){flush();refresh()},5*60*1000);
 
@@ -907,6 +937,7 @@ function boot(){
  if(APP_URL.indexOf('PASTE_')===0){fatal='Set APP_URL in index.html';return render()}
  if(!SHOP){view='pick';ui={code:''};return render()}
  if(!token){view='login';ui={pin:''};render();return}
+ if(idleTooLong()){locked=true;view='login';ui={pin:''};render();flush();refresh(!D);return}
  if(D)go('home');else{view='loading';render()}
  flush();refresh(!D);
 }
