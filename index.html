@@ -217,6 +217,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
+  optional:'optional',
   hello:'Hello, {n}',tapToAdd:'Tap to add a vehicle',vehToday:'Vehicles today',lockedPin:'Locked. Enter your PIN',
   blindHint:'Count the cash in the box and save. The owner checks it.',ownerChecks:'The owner will check the cash.',countedBy:'Counted by {by} at {at}',
   oldServer:'Apps Script is still on the old version ({v}). In Apps Script: Deploy → Manage deployments → Edit → Version: New version → Deploy.',
@@ -246,6 +247,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
+  optional:'ఐచ్ఛికం',
   hello:'నమస్తే, {n}',tapToAdd:'వాహనం జోడించడానికి నొక్కండి',vehToday:'ఈరోజు వాహనాలు',lockedPin:'లాక్ అయింది. మీ PIN నమోదు చేయండి',
   blindHint:'పెట్టెలో నగదు లెక్కించి సేవ్ చేయండి. ఓనర్ చెక్ చేస్తారు.',ownerChecks:'ఓనర్ నగదు చెక్ చేస్తారు.',countedBy:'{by} {at}కి లెక్కించారు',
   oldServer:'Apps Script ఇంకా పాత వెర్షన్‌లో ఉంది ({v}). Apps Script లో: Deploy → Manage deployments → Edit → Version: New version → Deploy.',
@@ -612,12 +614,15 @@ function washView(){
    h+=m.map(function(x){return '<button class="match" data-pick="'+esc(x.id)+'"><div class="main"><div class="plate num">'+esc(x.plate)+'</div>'+
     '<div class="sub">'+esc(x.name)+(x.name&&x.phone?' · ':'')+esc(x.phone)+' · 🕒 '+ago(x.last)+'</div></div>'+
     '<span class="sub num">'+x.visits+' '+t('visits')+'</span></button>'}).join('');
-   var exact=m.filter(function(x){return normPlate(x.plate)===q})[0];
+   var exact=m.filter(function(x){return normPlate(x.plate)===q||(/^\d{10,}$/.test(q)&&String(x.phone).replace(/\D/g,'')===q)})[0];
    if(!exact){
-    h+='<div class="newveh"><span>🆕 '+t('newVeh')+': <b class="num">'+esc(ui.q.trim().toUpperCase())+'</b></span>'+
-     (ui.adding?'':'<button class="linkbtn" id="add">+ '+t('phone')+' / '+t('nameShort')+'</button>')+'</div>';
+    // typed a phone number: it is the customer's phone; ask (optionally) for the vehicle number instead
+    var typedPhone=/^\d{10,}$/.test(q);
+    h+='<div class="newveh"><span>🆕 '+(typedPhone?t('newCust')+' · 📞 ':t('newVeh')+': ')+'<b class="num">'+esc(typedPhone?q:ui.q.trim().toUpperCase())+'</b></span>'+
+     (ui.adding?'':'<button class="linkbtn" id="add">+ '+(typedPhone?t('plate'):t('phone'))+' / '+t('nameShort')+'</button>')+'</div>';
     if(ui.adding)h+='<div class="list" style="padding:12px;display:flex;flex-direction:column;gap:10px">'+
-     '<input class="field num" id="n-phone" placeholder="'+t('phone')+'" inputmode="tel" value="'+esc(ui.nphone||'')+'">'+
+     (typedPhone?'<input class="field num" id="n-plate" placeholder="'+t('plate')+' ('+t('optional')+')" autocapitalize="characters" value="'+esc(ui.nplate||'')+'">'
+                :'<input class="field num" id="n-phone" placeholder="'+t('phone')+' ('+t('optional')+')" inputmode="tel" value="'+esc(ui.nphone||'')+'">')+
      '<input class="field" id="n-name" placeholder="'+t('name')+'" value="'+esc(ui.nname||'')+'"></div>';
    }
   } else h+='<div class="hint">'+t('plateHint')+'</div>';
@@ -805,10 +810,12 @@ function saveWash(pay){
  if(!c){
   var raw=ui.q.trim().toUpperCase().replace(/\s+/g,' '),key=normPlate(raw);
   if(key.length<3)return;
-  c=D.customers.filter(function(x){return normPlate(x.plate)===key})[0];
+  c=D.customers.filter(function(x){return normPlate(x.plate)===key||(/^\d{10,}$/.test(key)&&String(x.phone).replace(/\D/g,'')===key)})[0];
   if(!c){
-   var isPhone=/^\d{10,}$/.test(key),phone=(ui.nphone||'').replace(/[^\d+]/g,'')||(isPhone?key:'');
-   c={id:newId('C'),plate:raw,phone:phone,name:(ui.nname||'').trim(),visits:0,due:0,last:null};
+   var isPhone=/^\d{10,}$/.test(key);
+   var phone=isPhone?key:(ui.nphone||'').replace(/[^\d+]/g,'');
+   var plate=isPhone?((ui.nplate||'').trim().toUpperCase().replace(/\s+/g,' ')||key):raw;
+   c={id:newId('C'),plate:plate,phone:phone,name:(ui.nname||'').trim(),visits:0,due:0,last:null};
    D.customers.push(c);
   }
   ui.cid=c.id;
@@ -912,7 +919,7 @@ document.addEventListener('click',function(e){
 document.addEventListener('input',function(e){
  var id=e.target.id;
  if(id==='q'){ui.q=e.target.value;render()}
- else if(id==='n-phone'){ui.nphone=e.target.value}else if(id==='n-name'){ui.nname=e.target.value}
+ else if(id==='n-phone'){ui.nphone=e.target.value}else if(id==='n-plate'){ui.nplate=e.target.value}else if(id==='n-name'){ui.nname=e.target.value}
  else if(id==='shopcode'){ui.code=e.target.value}
  else if(id==='cq'){ui.q=e.target.value;render()}
  else if(id==='amt'){ui.amt=e.target.value.replace(/[^\d]/g,'');render()}
