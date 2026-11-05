@@ -267,7 +267,7 @@ var T={
    Paste your Apps Script Web app URL (ends in /exec) here.
    ========================================================= */
 var APP_URL='https://script.google.com/macros/s/AKfycbwW24Q07XEZu6LPLIUu4K8tEw_HjYYRxjsZoBzhzycrCetpC5A2r-YpENNc2BB6FWz12A/exec';
-var APP_VERSION='2.6';   // must match APP_VERSION in Code.gs
+var APP_VERSION='2.7';   // must match APP_VERSION in Code.gs
 
 function cleanCode(c){return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 var SHOP=(function(){
@@ -500,7 +500,7 @@ function licBanner(){
  if(l.state==='expired')return '<div class="banner b-bad">🔒 '+supportText('licExpired')+'</div>';
  return '';
 }
-function toLogin(){token=null;LS.del('token');LS.del('pinh');locked=false;view='login';ui={pin:''};render()}
+function toLogin(){token=null;LS.del('token');LS.del('pinh');locked=false;view='login';ui={pin:''};render();fetchShopName()}
 
 /* ---------- lock after 5 minutes without use; the PIN is checked on the phone, so it unlocks offline too ---------- */
 var IDLE_MS=5*60*1000,locked=false;
@@ -548,12 +548,12 @@ function header(title){
 }
 
 function loginView(){
- var shop=D&&D.settings?D.settings.shopName:'WashBook';
+ var shop=D&&D.settings?D.settings.shopName:(LS.get('shopName','')||'');
  var p=ui.pin||'',d='';
  for(var i=0;i<Math.max(4,p.length);i++)d+='<span class="'+(i<p.length?'on':'')+'"></span>';
  var keys=['1','2','3','4','5','6','7','8','9','⌫','0','✓'];
  return '<div class="top"><div style="flex:1"></div>'+langToggle()+'</div>'+
-  '<div class="pinbox"><div class="drop" style="width:46px;height:46px"></div><div class="shop">'+esc(shop)+'</div>'+
+  '<div class="pinbox"><div class="drop" style="width:46px;height:46px"></div><div class="shop">'+(shop?esc(shop):'&nbsp;')+'</div><div class="sub" style="margin-top:-12px;font-weight:700">WashBook</div>'+
   '<div style="font-weight:700">'+(locked?'🔒 '+t('lockedPin'):t('enterPin'))+'</div><div class="pindots">'+d+'</div>'+
   '<div class="err" role="alert">'+(pinErr?t('wrongPin'):(ui.busy?t('loading'):''))+'</div>'+
   '<div class="pad">'+keys.map(function(k){return '<button data-key="'+k+'" class="'+(k==='✓'?'okk':'')+'" aria-label="'+(k==='⌫'?'delete':k==='✓'?'enter':k)+'">'+k+'</button>'}).join('')+'</div></div>';
@@ -792,6 +792,12 @@ function render(){
 function go(v){if(locked&&v!=='login'){return render()}view=v;ui={sel:[],q:'',cid:null,adding:false,cat:null,amt:'',tab:'all',months:3,offer:null,del:null,col:null};render();window.scrollTo(0,0)}
 
 /* ============ Actions ============ */
+function fetchShopName(){
+ if(D&&D.settings||fetchShopName.busy)return;
+ fetchShopName.busy=true;
+ call('shopInfo',SHOP).then(function(r){fetchShopName.busy=false;if(r&&r.name){LS.set('shopName',r.name);if(view==='login')render()}},
+  function(e){fetchShopName.busy=false;if(errKind(e)==='noshop')stopApp('noshop')});
+}
 function doLogin(){
  var pin=ui.pin||'';if(pin.length<4||ui.busy)return;
  if(locked&&token&&LS.get('pinh','')===pinHash(pin)){ui.pin='';return unlock()}   // same person: no internet needed
@@ -799,7 +805,7 @@ function doLogin(){
  call('login',SHOP,pin).then(function(res){
   ui.busy=false;
   if(!res.ok){if(res.reason==='suspended'){LS.set('licence',res.licence);return stopApp('suspended')}pinErr='1';ui.pin='';return render()}
-  token=res.token;LS.set('token',token);LS.set('pinh',pinHash(pin));D=res.data;saveData();LS.set('licence',D.licence);pinErr='';
+  token=res.token;LS.set('token',token);LS.set('pinh',pinHash(pin));D=res.data;saveData();LS.set('licence',D.licence);LS.set('shopName',D.settings.shopName);pinErr='';
   locked=false;touchActive(true);go('home');flush();
  },function(e){ui.busy=false;var k=errKind(e);if(k==='setup'){fatal=t('setup');return render()}if(k==='noshop')return stopApp('noshop');toast(t('error'),true);render()});
 }
@@ -943,7 +949,7 @@ setInterval(function(){flush();refresh()},5*60*1000);
 function boot(){
  if(APP_URL.indexOf('PASTE_')===0){fatal='Set APP_URL in index.html';return render()}
  if(!SHOP){view='pick';ui={code:''};return render()}
- if(!token){view='login';ui={pin:''};render();return}
+ if(!token){view='login';ui={pin:''};render();fetchShopName();return}
  if(idleTooLong()){locked=true;view='login';ui={pin:''};render();flush();refresh(!D);return}
  if(D)go('home');else{view='loading';render()}
  flush();refresh(!D);
