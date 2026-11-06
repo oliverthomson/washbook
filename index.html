@@ -48,6 +48,15 @@ button{cursor:pointer}
 .today{background:var(--surface);border-radius:18px;padding:14px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border:1px solid var(--line)}
 .today.two{grid-template-columns:repeat(2,1fr)}
 .today.one{grid-template-columns:1fr}
+.daynav{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:8px 10px;font-size:17px}
+.daynav .x{font-size:18px;padding:6px 14px}
+.daynav .x:disabled{opacity:.3}
+.dash-total{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--wash);color:var(--on);border-radius:20px;padding:16px;font-weight:700}
+.dash-total b{font-size:38px;line-height:1.1}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dtile{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:2px;border-left-width:6px}
+.dtile .dic{font-size:24px}.dtile .dlb{font-size:14px;font-weight:700;color:var(--muted)}.dtile b{font-size:22px}
+.d-cash{border-left-color:var(--good)}.d-upi{border-left-color:var(--close)}.d-card{border-left-color:var(--wash)}.d-credit{border-left-color:var(--bad)}
 .sendq{background:var(--surface);border:2px solid var(--wa);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
 .sq-top{display:flex;justify-content:space-between;align-items:center;font-size:17px}
 .sq-bar{height:8px;border-radius:999px;background:var(--sunk);overflow:hidden}
@@ -96,7 +105,7 @@ h2{font-size:15px;color:var(--muted);font-weight:700;margin:4px 0 -4px;text-tran
 .sub{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
 .amt{font-weight:800;font-size:18px;text-align:right;flex:none}
 .pay{font-size:12px;font-weight:700;border-radius:999px;padding:1px 8px;display:inline-block}
-.p-cash{background:var(--good-bg);color:var(--good)} .p-card{background:var(--sunk);color:var(--wash)} .p-credit{background:var(--bad-bg);color:var(--bad)}
+.p-cash{background:var(--good-bg);color:var(--good)} .p-upi{background:var(--sunk);color:var(--close)} .p-card{background:var(--sunk);color:var(--wash)} .p-credit{background:var(--bad-bg);color:var(--bad)}
 .confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 14px;background:var(--bad-bg);color:var(--bad);font-weight:800}
 .confirm.go{background:var(--good-bg);color:var(--good)}
 .confirm span{flex:1;min-width:140px}
@@ -127,10 +136,10 @@ h2{font-size:15px;color:var(--muted);font-weight:700;margin:4px 0 -4px;text-tran
 .svc .p{font-weight:800;font-size:20px}
 .total{display:flex;justify-content:space-between;align-items:baseline;font-size:20px;font-weight:700;padding:4px 2px;gap:8px}
 .total b{font-size:30px}
-.paybtns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.paybtns{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .paybtns button{border:0;border-radius:18px;padding:14px 6px;color:var(--on);font-weight:800;font-size:18px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .paybtns .ic{font-size:30px}
-.b-cash{background:var(--good)} .b-card{background:var(--wash)} .b-credit{background:var(--bad)}
+.b-cash{background:var(--good)} .b-upi{background:var(--close)} .b-card{background:var(--wash)} .b-credit{background:var(--bad)}
 .paybtns button:disabled,.big:disabled{opacity:.35;cursor:not-allowed}
 .hint{font-size:14px;color:var(--muted);text-align:center}
 
@@ -218,7 +227,7 @@ var T={
  en:{wash:'New Wash',cust:'Customers',exp:'Expense',close:'Close Day',today:'Today',cars:'Vehicles',sales:'Sales',cashBox:'Cash in box',
   recent:"Today's washes",back:'← Back',plateQ:'Vehicle number or phone',plateHint:'Type vehicle number or phone',newCust:'New customer',name:'Name (optional)',phone:'Phone',
   plate:'Vehicle number',visits:'visits',freeNow:'🎉 Loyalty — this wash is FREE',pickSvc:'Choose service',total:'Total',payHow:'Tap how the customer paid',
-  cash:'Cash',card:'Card',credit:'Later',saved:'Saved ✓',search:'Search vehicle number or phone',due:'Due',noWash:'No washes yet today',
+  cash:'Cash',upi:'UPI',card:'Card',credit:'Later',saved:'Saved ✓',search:'Search vehicle number or phone',due:'Due',noWash:'No washes yet today',
   expTitle:'Add expense',amount:'Amount (₹)',save:'Save',cashSales:'Cash sales',cardSales:'Card sales',creditSales:'Pay later',expenses:'Expenses',
   opening:'Morning change money',collected:'Old dues collected',expected:'Cash should be',count:'Count the cash in the box',counted:'You counted',
   match:'Cash matches ✓',short:'Cash is SHORT',extra:'Cash is EXTRA',saveClose:'Close day & save',closedAt:'Day closed by {by} at {at}',
@@ -232,6 +241,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
+  cashHand:'Cash in hand',byVehicle:'By vehicle type',shareSum:'Share on WhatsApp',
   sendAll:'Send to all',sendHow:'Tap the green button, press Send in WhatsApp, then come back here for the next customer.',skip:'Skip',stop:'Stop',close2:'Close',sentAll:'Done. Offer sent to {n} customers.',allSent:'Everyone in this list has been sent the offer.',offerSentOn:'Offer sent {d}',sendAgain:'Send again',
   mobileReq:'Mobile number',needPhone:'Enter the customer\'s 10-digit mobile number',logout:'Logout',
   optional:'optional',
@@ -250,7 +260,7 @@ var T={
  te:{wash:'కొత్త వాష్',cust:'కస్టమర్లు',exp:'ఖర్చు',close:'రోజు ముగింపు',today:'ఈరోజు',cars:'వాహనాలు',sales:'అమ్మకాలు',cashBox:'పెట్టెలో నగదు',
   recent:'ఈరోజు వాష్‌లు',back:'← వెనక్కి',plateQ:'వాహనం నంబర్ లేదా ఫోన్',plateHint:'వాహనం నంబర్ లేదా ఫోన్ టైప్ చేయండి',newCust:'కొత్త కస్టమర్',name:'పేరు (అవసరం లేదు)',phone:'ఫోన్',
   plate:'వాహనం నంబర్',visits:'సార్లు',freeNow:'🎉 ఈ వాష్ ఉచితం',pickSvc:'సర్వీస్ ఎంచుకోండి',total:'మొత్తం',payHow:'కస్టమర్ ఎలా చెల్లించారో నొక్కండి',
-  cash:'నగదు',card:'కార్డు',credit:'తర్వాత',saved:'సేవ్ అయింది ✓',search:'వాహనం నంబర్ లేదా ఫోన్ వెతకండి',due:'బాకీ',noWash:'ఈరోజు ఇంకా వాష్‌లు లేవు',
+  cash:'నగదు',upi:'UPI',card:'కార్డు',credit:'తర్వాత',saved:'సేవ్ అయింది ✓',search:'వాహనం నంబర్ లేదా ఫోన్ వెతకండి',due:'బాకీ',noWash:'ఈరోజు ఇంకా వాష్‌లు లేవు',
   expTitle:'ఖర్చు రాయండి',amount:'మొత్తం (₹ రూపాయలు)',save:'సేవ్ చేయండి',cashSales:'నగదు అమ్మకాలు',cardSales:'కార్డు అమ్మకాలు',creditSales:'తర్వాత చెల్లింపు',expenses:'ఖర్చులు',
   opening:'ఉదయం చిల్లర',collected:'వసూలైన పాత బాకీ',expected:'ఉండాల్సిన నగదు',count:'పెట్టెలో నగదు లెక్కించండి',counted:'మీరు లెక్కించింది',
   match:'నగదు సరిపోయింది ✓',short:'నగదు తక్కువ ఉంది',extra:'నగదు ఎక్కువ ఉంది',saveClose:'రోజు ముగించి సేవ్ చేయండి',closedAt:'{by} {at}కి రోజు ముగించారు',
@@ -264,6 +274,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
+  cashHand:'చేతిలో నగదు',byVehicle:'వాహనం రకం వారీగా',shareSum:'వాట్సాప్‌లో పంపండి',
   sendAll:'అందరికీ పంపండి',sendHow:'ఆకుపచ్చ బటన్ నొక్కి, వాట్సాప్‌లో Send నొక్కి, తర్వాతి కస్టమర్ కోసం ఇక్కడికి తిరిగి రండి.',skip:'దాటవేయి',stop:'ఆపండి',close2:'మూసివేయి',sentAll:'అయిపోయింది. {n} కస్టమర్లకు ఆఫర్ పంపారు.',allSent:'ఈ లిస్ట్‌లో అందరికీ ఆఫర్ పంపారు.',offerSentOn:'ఆఫర్ పంపారు {d}',sendAgain:'మళ్ళీ పంపండి',
   mobileReq:'మొబైల్ నంబర్',needPhone:'కస్టమర్ 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి',logout:'లాగ్ అవుట్',
   optional:'ఐచ్ఛికం',
@@ -286,7 +297,7 @@ var T={
    Paste your Apps Script Web app URL (ends in /exec) here.
    ========================================================= */
 var APP_URL='https://script.google.com/macros/s/AKfycbwW24Q07XEZu6LPLIUu4K8tEw_HjYYRxjsZoBzhzycrCetpC5A2r-YpENNc2BB6FWz12A/exec';
-var APP_VERSION='2.9';   // must match APP_VERSION in Code.gs
+var APP_VERSION='3.0';   // must match APP_VERSION in Code.gs
 
 function cleanCode(c){return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 var SHOP=(function(){
@@ -306,7 +317,7 @@ var view='home', ui={}, net='ok', busy=false, pinErr='', fatal='';
 /* ============ Small helpers ============ */
 function t(k){return (T[lang]&&T[lang][k])||T.en[k]||k}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function rs(n){return '₹'+Number(n||0).toLocaleString('en-IN')}
+function rs(n){n=Number(n||0);return (n<0?'−':'')+'₹'+Math.abs(n).toLocaleString('en-IN')}
 /* Indian Standard Time on every phone (IST = UTC+05:30, no daylight saving), whatever the phone's own time zone */
 function istNow(){var d=new Date(Date.now()+330*60000);return {date:d.toISOString().slice(0,10),hm:d.toISOString().slice(11,16)}}
 function istToday(){return istNow().date}
@@ -361,9 +372,9 @@ function payPill(p){return '<span class="pay p-'+p+'">'+t(p)+'</span>'}
 function totals(){
  var s=function(a){return a.reduce(function(x,y){return x+y.amt},0)};
  var by=function(p){return s(D.washes.filter(function(w){return w.pay===p}))};
- var cash=by('cash'),card=by('card'),credit=by('credit'),collected=s(D.payments),exp=s(D.expenses),opening=D.settings.openingCash||0;
+ var cash=by('cash'),upi=by('upi'),card=by('card'),credit=by('credit'),collected=s(D.payments),exp=s(D.expenses),opening=D.settings.openingCash||0;
  var cnt=getCounts(),counted=NOTES.reduce(function(a,n){return a+n*(cnt[n]||0)},0);
- return {cash:cash,card:card,credit:credit,collected:collected,exp:exp,opening:opening,sales:cash+card+credit,
+ return {cash:cash,upi:upi,card:card,credit:credit,collected:collected,exp:exp,opening:opening,sales:cash+upi+card+credit,
    expected:opening+cash+collected-exp,counted:counted,cars:D.washes.length};
 }
 function getCounts(){var c=LS.get('counts',null);return c&&c.date===D.today?c.c:{}}
@@ -705,6 +716,7 @@ function washView(){
  h+='<div class="total"><span>'+t('total')+'</span><b class="num">'+(free&&sum?'<s style="opacity:.4;font-size:20px">'+rs(sum)+'</s> ₹0':rs(free?0:sum))+'</b></div>'+
   '<div class="hint">'+(ready?t('payHow'):(!c&&q.length<3?t('needVeh'):(needPhone?'📞 '+t('needPhone'):t('pickSvc'))))+'</div><div class="paybtns">'+
   '<button class="b-cash" id="pay-cash" data-pay="cash" '+(ready?'':'disabled')+'><span class="ic">💵</span>'+t('cash')+'</button>'+
+  '<button class="b-upi" id="pay-upi" data-pay="upi" '+(ready&&!free?'':'disabled')+'><span class="ic">📱</span>'+t('upi')+'</button>'+
   '<button class="b-card" id="pay-card" data-pay="card" '+(ready&&!free?'':'disabled')+'><span class="ic">💳</span>'+t('card')+'</button>'+
   '<button class="b-credit" id="pay-credit" data-pay="credit" '+(ready&&!free?'':'disabled')+'><span class="ic">📒</span>'+t('credit')+'</button></div>';
  return h;
@@ -792,40 +804,49 @@ function expView(){
 }
 
 function closeView(){
- var x=totals(),cnt=getCounts(),h=header(t('close'));
- if(isMgr())return closeViewMgr(x,cnt,h);
- // counted on another phone (e.g. by the manager): show that count
- var srv=D.close&&x.counted===0&&D.close.counted!=null;
- if(srv){x.counted=D.close.counted;x.expected=D.close.expected}
+ var h=header(t('close')),day=ui.day||D.today,isToday=day===D.today;
+ var x=isToday?localSummary():ui.sum;
+ h+='<div class="daynav"><button class="x" id="day-prev" aria-label="previous day">◀</button><b>'+esc(dayLabel(day))+'</b>'+
+  '<button class="x" id="day-next" aria-label="next day" '+(isToday?'disabled':'')+'>▶</button></div>';
+ if(!x)return h+'<div class="center">'+(ui.sumErr?t('needNet'):t('loading'))+'</div>';
+ var total=x.cash+x.upi+x.card+x.credit;
+ h+='<div class="dash-total"><span>'+t('sales')+'</span><b class="num">'+rs(total)+'</b><span>'+x.cars+' '+t('cars')+'</span></div>';
+ var tileD=function(cls,ic,lab,v){return '<div class="dtile '+cls+'"><span class="dic">'+ic+'</span><span class="dlb">'+lab+'</span><b class="num">'+rs(v)+'</b></div>'};
+ h+='<div class="dgrid">'+tileD('d-cash','💵',t('cash'),x.cash)+tileD('d-upi','📱',t('upi'),x.upi)+tileD('d-card','💳',t('card'),x.card)+tileD('d-credit','📒',t('creditSales'),x.credit)+'</div>';
  h+='<div class="list sum">'+
-  (x.opening?'<div class="row"><div class="main">🪙 '+t('opening')+'</div><div class="amt num">'+rs(x.opening)+'</div></div>':'')+
-  '<div class="row"><div class="main">💵 '+t('cashSales')+'</div><div class="amt num">+ '+rs(x.cash)+'</div></div>'+
   (x.collected?'<div class="row"><div class="main">📒 '+t('collected')+'</div><div class="amt num">+ '+rs(x.collected)+'</div></div>':'')+
   '<div class="row"><div class="main">💸 '+t('expenses')+'</div><div class="amt num">− '+rs(x.exp)+'</div></div>'+
-  '<div class="row hl"><div class="main">'+t('expected')+'</div><div class="amt num">'+rs(x.expected)+'</div></div>'+
-  '<div class="row"><div class="main sub">💳 '+t('cardSales')+'</div><div class="amt num sub">'+rs(x.card)+'</div></div>'+
-  '<div class="row"><div class="main sub">📒 '+t('creditSales')+'</div><div class="amt num sub">'+rs(x.credit)+'</div></div></div>';
- h+='<h2>'+t('count')+'</h2><div class="list">'+NOTES.map(function(n){
-  return '<div class="row"><span class="note num">'+n+'</span><div class="step"><button data-dec="'+n+'" aria-label="minus '+n+'">−</button>'+
-   '<span class="c num">'+(cnt[n]||0)+'</span><button data-inc="'+n+'" aria-label="plus '+n+'">+</button></div><div style="flex:1"></div>'+
-   '<span class="sub-amt num">'+(n*(cnt[n]||0))+'</span></div>'}).join('')+'</div>';
- var diff=x.counted-x.expected;
- h+='<div class="total"><span>'+t('counted')+'</span><b class="num">'+rs(x.counted)+'</b></div>';
- if(x.counted>0){
-  if(srv)h+='<div class="sub" style="font-weight:700">'+t('countedBy').replace('{by}',esc(D.close.by)).replace('{at}',esc(String(D.close.at).slice(11)))+'</div>';
-  h+=diff===0?'<div class="result b-good"><div class="r1">'+t('match')+'</div></div>'
-   :'<div class="result b-bad"><div class="r1">'+(diff<0?t('short'):t('extra'))+'</div><div class="r2 num">'+rs(Math.abs(diff))+'</div></div>';
-  if(!srv)h+='<button class="big" id="closeday" style="background:var(--close)">💾 '+t('saveClose')+'</button>';
+  '<div class="row hl"><div class="main">💵 '+t('cashHand')+'</div><div class="amt num">'+rs(x.cash+x.collected-x.exp)+'</div></div></div>';
+ if(x.byVehicle&&x.byVehicle.length){
+  h+='<h2>'+t('byVehicle')+'</h2><div class="list">'+x.byVehicle.map(function(g){
+   return '<div class="row"><span class="svic">'+esc(g.ic||'🚗')+'</span><div class="main"><b>'+esc(g.vt?(lang==='te'?g.vtte:g.vt):t('otherVeh'))+'</b><div class="sub">'+g.count+' '+t('cars')+'</div></div><div class="amt num">'+rs(g.amount)+'</div></div>'}).join('')+'</div>';
  }
- if(D.close){
-  h+='<div class="banner b-good">✓ '+t('closedAt').replace('{by}',esc(D.close.by)).replace('{at}',esc(String(D.close.at).slice(11)))+'</div>';
-  var rep=makeReport();
-  h+='<textarea class="report" id="report" readonly>'+esc(rep)+'</textarea>';
-  if(String(D.settings.ownerPhone).replace(/\D/g,'').length>=10)
-   h+='<a class="big" style="background:var(--wa)" target="_blank" rel="noopener" href="https://wa.me/'+waNum(D.settings.ownerPhone)+'?text='+encodeURIComponent(rep)+'">💬 '+t('sendOwner')+'</a>';
-  h+='<button class="big" id="copy" style="background:var(--good)">📋 '+t('copy')+'</button>';
- }
+ var rep=summaryText(day,x);
+ h+='<a class="big" style="background:var(--wa)" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(rep)+'">💬 '+t('shareSum')+'</a>';
  return h;
+}
+function localSummary(){
+ var x=totals(),g={};
+ D.washes.forEach(function(w){var s0=svc(w.svc[0])||{},k=s0.vt||'';var e=g[k]||(g[k]={vt:k,vtte:s0.vtte||k,ic:k?(s0.vic||'🚗'):'🧽',count:0,amount:0});e.count++;e.amount+=w.amt||0});
+ x.byVehicle=Object.keys(g).map(function(k){return g[k]}).sort(function(a,b){return b.amount-a.amount});
+ return x;
+}
+function dayLabel(d){
+ var dt=new Date(d+'T12:00:00');
+ return (d===D.today?t('today')+' · ':'')+dt.toLocaleDateString(lang==='te'?'te-IN':'en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+}
+function shiftDay(d,n){var x=new Date(d+'T12:00:00Z');x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10)}
+function loadDay(day){
+ ui.day=day;ui.sum=null;ui.sumErr=false;render();
+ if(day===D.today)return;
+ call('api',SHOP,token,'daySummary',{date:day}).then(function(r){if(view==='close'&&ui.day===day){ui.sum=r;render()}},
+  function(e){if(errKind(e)==='login')return toLogin();if(ui.day===day){ui.sumErr=true;render()}});
+}
+function summaryText(day,x){
+ var L=function(k){return T.en[k]+' / '+T.te[k]};
+ return '🚗 '+D.settings.shopName+' — '+day+'\n'+L('cars')+': '+x.cars+'\n'+L('sales')+': ₹'+(x.cash+x.upi+x.card+x.credit)+'\n'+
+  L('cash')+': ₹'+x.cash+'\nUPI: ₹'+x.upi+'\n'+L('card')+': ₹'+x.card+'\n'+L('creditSales')+': ₹'+x.credit+'\n'+
+  (x.collected?L('collected')+': ₹'+x.collected+'\n':'')+L('expenses')+': ₹'+x.exp+'\n'+L('cashHand')+': ₹'+(x.cash+x.collected-x.exp);
 }
 function countLine(){
  var c=getCounts();return NOTES.filter(function(n){return c[n]}).map(function(n){return n+'×'+c[n]}).join(', ');
@@ -1013,6 +1034,8 @@ document.addEventListener('click',function(e){
  if(d.colno){ui.col=null;render();return}
  if(d.inc||d.dec){var n=d.inc||d.dec,c=getCounts();c[n]=Math.max(0,(c[n]||0)+(d.inc?1:-1));setCounts(c);render();return}
  if(b.id==='closeday'){closeDay();return}
+ if(b.id==='day-prev'){loadDay(shiftDay(ui.day||D.today,-1));return}
+ if(b.id==='day-next'){var nd=shiftDay(ui.day||D.today,1);loadDay(nd>D.today?D.today:nd);return}
  if(b.id==='copy'){
   var ta=document.getElementById('report'),txt=ta.value;
   var fb=function(){ta.focus();ta.select();try{document.execCommand('copy');toast(t('copied'))}catch(err){}};
