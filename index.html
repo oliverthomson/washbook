@@ -48,6 +48,21 @@ button{cursor:pointer}
 .today{background:var(--surface);border-radius:18px;padding:14px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border:1px solid var(--line)}
 .today.two{grid-template-columns:repeat(2,1fr)}
 .today.one{grid-template-columns:1fr}
+.bill{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 2px 0 var(--line)}
+.bill-head{display:flex;align-items:center;gap:12px;border-bottom:2px dashed var(--line);padding-bottom:12px}
+.bill-head .logo{margin:0;flex:none}
+.bill-shop{font-size:20px;font-weight:800;line-height:1.2}
+.bill-sec{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bill-sec>div{display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere}
+.bill-sec b{font-size:17px}
+.bill-items{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.bi{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:16px}
+.bi.good{color:var(--good);font-weight:700}
+.bi.tot{font-size:22px;font-weight:800;border-bottom:0;padding-top:10px}
+.bill-pay{display:flex;align-items:center;gap:8px}
+.bill-pay .pay{font-size:14px;padding:3px 12px}
+.bill-loyal{background:var(--good-bg);color:var(--good);font-weight:800;border-radius:12px;padding:8px 12px;text-align:center}
+.bill-thanks{text-align:center;color:var(--muted);font-weight:700}
 .daynav{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:8px 10px;font-size:17px}
 .daynav .x{font-size:18px;padding:6px 14px}
 .daynav .x:disabled{opacity:.3}
@@ -241,6 +256,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
+  invoice:'Invoice',customer:'Customer',vehicle:'Vehicle',freeWash:'Loyalty – free wash',thanks:'Thank you! Please visit again 🙏',sendInvoice:'Send invoice on WhatsApp',done:'Done',
   cashHand:'Cash in hand',byVehicle:'By vehicle type',shareSum:'Share on WhatsApp',
   sendAll:'Send to all',sendHow:'Tap the green button, press Send in WhatsApp, then come back here for the next customer.',skip:'Skip',stop:'Stop',close2:'Close',sentAll:'Done. Offer sent to {n} customers.',allSent:'Everyone in this list has been sent the offer.',offerSentOn:'Offer sent {d}',sendAgain:'Send again',
   mobileReq:'Mobile number',needPhone:'Enter the customer\'s 10-digit mobile number',logout:'Logout',
@@ -274,6 +290,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
+  invoice:'ఇన్వాయిస్',customer:'కస్టమర్',vehicle:'వాహనం',freeWash:'లాయల్టీ – ఉచిత వాష్',thanks:'ధన్యవాదాలు! మళ్ళీ రండి 🙏',sendInvoice:'వాట్సాప్‌లో ఇన్వాయిస్ పంపండి',done:'పూర్తయింది',
   cashHand:'చేతిలో నగదు',byVehicle:'వాహనం రకం వారీగా',shareSum:'వాట్సాప్‌లో పంపండి',
   sendAll:'అందరికీ పంపండి',sendHow:'ఆకుపచ్చ బటన్ నొక్కి, వాట్సాప్‌లో Send నొక్కి, తర్వాతి కస్టమర్ కోసం ఇక్కడికి తిరిగి రండి.',skip:'దాటవేయి',stop:'ఆపండి',close2:'మూసివేయి',sentAll:'అయిపోయింది. {n} కస్టమర్లకు ఆఫర్ పంపారు.',allSent:'ఈ లిస్ట్‌లో అందరికీ ఆఫర్ పంపారు.',offerSentOn:'ఆఫర్ పంపారు {d}',sendAgain:'మళ్ళీ పంపండి',
   mobileReq:'మొబైల్ నంబర్',needPhone:'కస్టమర్ 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి',logout:'లాగ్ అవుట్',
@@ -297,7 +314,7 @@ var T={
    Paste your Apps Script Web app URL (ends in /exec) here.
    ========================================================= */
 var APP_URL='https://script.google.com/macros/s/AKfycbwW24Q07XEZu6LPLIUu4K8tEw_HjYYRxjsZoBzhzycrCetpC5A2r-YpENNc2BB6FWz12A/exec';
-var APP_VERSION='3.0';   // must match APP_VERSION in Code.gs
+var APP_VERSION='3.1';   // must match APP_VERSION in Code.gs
 
 function cleanCode(c){return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 var SHOP=(function(){
@@ -821,8 +838,6 @@ function closeView(){
   h+='<h2>'+t('byVehicle')+'</h2><div class="list">'+x.byVehicle.map(function(g){
    return '<div class="row"><span class="svic">'+esc(g.ic||'🚗')+'</span><div class="main"><b>'+esc(g.vt?(lang==='te'?g.vtte:g.vt):t('otherVeh'))+'</b><div class="sub">'+g.count+' '+t('cars')+'</div></div><div class="amt num">'+rs(g.amount)+'</div></div>'}).join('')+'</div>';
  }
- var rep=summaryText(day,x);
- h+='<a class="big" style="background:var(--wa)" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(rep)+'">💬 '+t('shareSum')+'</a>';
  return h;
 }
 function localSummary(){
@@ -891,7 +906,7 @@ function render(){
  if(view==='pick')html=pickView();
  else if(view==='login')html=loginView();
  else if(!D)html='<div class="center">'+t('loading')+'</div>';
- else html={home:homeView,wash:washView,cust:custView,exp:expView,close:closeView,branches:branchesView}[view]();
+ else html={home:homeView,wash:washView,cust:custView,exp:expView,close:closeView,branches:branchesView,receipt:receiptView}[view]();
  var a=document.activeElement,fid=a&&a.id,pos=a&&a.selectionStart;
  app.innerHTML=html;
  if(fid){var el=document.getElementById(fid);if(el&&el.tagName==='INPUT'){el.focus();try{el.setSelectionRange(pos,pos)}catch(e){}}}
@@ -936,10 +951,68 @@ function saveWash(pay){
  if(!phoneOk(c.phone)){if(!phoneOk(ui.nphone))return;c.phone=phoneDigits(ui.nphone)}
  var free=isFree(c),amt=free?0:ui.sel.reduce(function(a,id){var s=svc(id);return a+(s?s.price:0)},0);
  if(free)pay='cash';
- var at=Date.now(),w={id:newId('W'),date:D.today,t:nowHM(),cid:c.id,plate:c.plate,svc:ui.sel.slice(),names:'',amt:amt,pay:pay,free:free,staff:D.user.name};
+ var at=Date.now(),w={id:newId('W'),date:D.today,t:nowHM(),cid:c.id,plate:c.plate,svc:ui.sel.slice(),names:'',amt:amt,pay:pay,free:free,staff:D.user.name,inv:invoiceNo()};
  D.washes.push(w);c.visits++;c.last=D.today;if(pay==='credit')c.due+=amt;
- enqueue('addWash',{id:w.id,at:at,services:w.svc,pay:pay,customer:{id:c.id,plate:c.plate,phone:c.phone,name:c.name}});
- toast(t('saved'));go('home');
+ enqueue('addWash',{id:w.id,at:at,services:w.svc,pay:pay,invoice:w.inv,customer:{id:c.id,plate:c.plate,phone:c.phone,name:c.name}});
+ var items=w.svc.map(function(id){var s=svc(id)||{};return {en:s.en||'',te:s.te||s.en||'',price:s.price||0}});
+ var s0=svc(w.svc[0])||{};
+ var rc={w:w,cust:{name:c.name,phone:c.phone,plate:c.plate,visits:c.visits,due:c.due},items:items,vt:s0.vt||'',vtte:s0.vtte||s0.vt||'',vic:s0.vic||'🚗'};
+ lastRc=rc;toast(t('saved'));go('receipt');
+}
+/* ---------- invoice ---------- */
+var lastRc=null;
+function invoiceNo(){   // e.g. PDOK-261106-07: shop letters, date (IST), wash number of the day
+ var d=D.today.replace(/-/g,'').slice(2),n=String(D.washes.length+1);
+ return (D.settings.prefix||'WB')+'-'+d+'-'+(n.length<2?'0'+n:n);
+}
+function fmtDay(d){var m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return d.slice(8)+'-'+m[+d.slice(5,7)-1]+'-'+d.slice(0,4)}
+function fmtTime(hm){var h=+hm.slice(0,2),m=hm.slice(3,5);return ((h%12)||12)+':'+m+(h<12?' AM':' PM')}
+function loyaltyNote(rc){
+ var n=D.settings.loyaltyEvery;if(!n)return '';
+ if(rc.w.free)return {en:'This wash is FREE – thank you for coming back!',te:'ఈ వాష్ ఉచితం – మళ్ళీ వచ్చినందుకు ధన్యవాదాలు!'};
+ var k=((n-1)-(rc.cust.visits%n)+n)%n;
+ return k===0?{en:'Your next wash is FREE!',te:'మీ తదుపరి వాష్ ఉచితం!'}
+  :{en:k+' more wash'+(k>1?'es':'')+' and the next one is FREE!',te:'ఇంకా '+k+' వాష్‌లు చేయించుకుంటే తదుపరిది ఉచితం!'};
+}
+function invoiceText(rc){
+ var w=rc.w,c=rc.cust,L=[],pad=function(s,n){s=String(s);return s.length>=n?s.slice(0,n-1)+' ':s+new Array(n-s.length+1).join(' ')};
+ L.push('🧾 *'+D.settings.shopName+'*');
+ L.push('Invoice: '+w.inv);
+ L.push('Date: '+fmtDay(w.date)+', '+fmtTime(w.t));
+ L.push('');
+ L.push('Customer: '+(c.name?c.name+' ':'')+'('+c.phone+')');
+ L.push('Vehicle: '+c.plate+(rc.vt?' · '+rc.vt:''));
+ L.push('');
+ L.push('```');
+ rc.items.forEach(function(it){L.push(pad(it.en,20)+('₹'+it.price).padStart(7))});
+ if(w.free)L.push(pad('Loyalty – FREE',20)+('-₹'+rc.items.reduce(function(a,i){return a+i.price},0)).padStart(7));
+ L.push(new Array(28).join('-'));
+ L.push(pad('TOTAL',20)+('₹'+w.amt).padStart(7));
+ L.push('```');
+ L.push('Paid by: *'+(w.free?'Free wash':({cash:'Cash',upi:'UPI',card:'Card',credit:'Pay later (due)'}[w.pay]||w.pay))+'*');
+ if(w.pay==='credit')L.push('Amount due: ₹'+c.due);
+ var ln=loyaltyNote(rc);if(ln){L.push('');L.push('⭐ '+ln.en)}
+ L.push('');
+ L.push('Thank you! Please visit again 🙏');
+ L.push('ధన్యవాదాలు! మళ్ళీ రండి 🙏');
+ return L.join('\n');
+}
+function receiptView(){
+ var rc=lastRc;if(!rc){view='home';return homeView()}
+ var w=rc.w,c=rc.cust,h=header(t('invoice'));
+ var ln=loyaltyNote(rc);
+ h+='<div class="bill"><div class="bill-head">'+logoSvg(70)+'<div><div class="bill-shop">'+esc(D.settings.shopName)+'</div><div class="sub">'+t('invoice')+' '+esc(w.inv)+'</div><div class="sub">'+fmtDay(w.date)+', '+fmtTime(w.t)+'</div></div></div>'+
+  '<div class="bill-sec"><div><span class="sub">'+t('customer')+'</span><b>'+esc(c.name||'—')+'</b><span class="num">📞 '+esc(c.phone)+'</span></div>'+
+  '<div><span class="sub">'+t('vehicle')+'</span><b class="num">'+esc(c.plate)+'</b><span>'+esc(rc.vic)+' '+esc(lang==='te'?rc.vtte:rc.vt)+'</span></div></div>'+
+  '<div class="bill-items">'+rc.items.map(function(it){return '<div class="bi"><span>'+esc(lang==='te'?it.te:it.en)+'</span><span class="num">'+rs(it.price)+'</span></div>'}).join('')+
+  (w.free?'<div class="bi good"><span>🎉 '+t('freeWash')+'</span><span class="num">−'+rs(rc.items.reduce(function(a,i){return a+i.price},0))+'</span></div>':'')+
+  '<div class="bi tot"><span>'+t('total')+'</span><span class="num">'+rs(w.amt)+'</span></div></div>'+
+  '<div class="bill-pay">'+payPill(w.pay)+(w.pay==='credit'?' <span class="sub">'+t('due')+' '+rs(c.due)+'</span>':'')+'</div>'+
+  (ln?'<div class="bill-loyal">⭐ '+esc(lang==='te'?ln.te:ln.en)+'</div>':'')+
+  '<div class="bill-thanks">'+t('thanks')+'</div></div>';
+ h+='<a class="big wa-inv" style="background:var(--wa)" target="_blank" rel="noopener" href="https://wa.me/'+waNum(c.phone)+'?text='+encodeURIComponent(invoiceText(rc))+'">💬 '+t('sendInvoice')+'</a>'+
+  '<button class="big" id="rc-done" style="background:var(--wash)">✓ '+t('done')+'</button>';
+ return h;
 }
 function saveExpense(){
  var amt=+ui.amt;if(!ui.cat||!(amt>0))return;
@@ -990,9 +1063,10 @@ document.addEventListener('click',function(e){
   if(ui.pin.length===4)setTimeout(doLogin,120);   // PINs are 4 digits: open as soon as the 4th is typed
   return;
  }
- if(d.go&&isMgr()&&['home','wash'].indexOf(d.go)<0)return;
+ if(d.go&&isMgr()&&['home','wash','receipt'].indexOf(d.go)<0)return;
  if(d.go){if(readOnly()&&d.go!=='home'&&d.go!=='cust'&&d.go!=='branches'){toast(t('locked'),true);return}go(d.go);if(d.go==='branches')loadBranches();return}
  if(d.switch){switchShop(d.switch);return}
+ if(b.id==='rc-done'){go('home');return}
  if(b.id==='sq-start'){startSendAll();return}
  if(b.id==='sq-skip'){ui.si++;render();return}
  if(b.id==='sq-stop'||b.id==='sq-close'){ui.sq=null;render();return}
