@@ -48,6 +48,13 @@ button{cursor:pointer}
 .today{background:var(--surface);border-radius:18px;padding:14px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border:1px solid var(--line)}
 .today.two{grid-template-columns:repeat(2,1fr)}
 .today.one{grid-template-columns:1fr}
+.sendq{background:var(--surface);border:2px solid var(--wa);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.sq-top{display:flex;justify-content:space-between;align-items:center;font-size:17px}
+.sq-bar{height:8px;border-radius:999px;background:var(--sunk);overflow:hidden}
+.sq-bar span{display:block;height:100%;background:var(--wa)}
+.wa-big{background:var(--wa)}
+.sq-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wa.done{background:var(--sunk);color:var(--muted)}
 .logo{display:block;max-width:60vw;height:auto;margin-bottom:-6px}
 .phonebox{display:flex;flex-direction:column;gap:6px;font-weight:800;font-size:15px;color:var(--ink)}
 .phonebox input{font-size:22px;font-weight:800;border-width:2px;border-color:var(--wash)}
@@ -225,6 +232,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
+  sendAll:'Send to all',sendHow:'Tap the green button, press Send in WhatsApp, then come back here for the next customer.',skip:'Skip',stop:'Stop',close2:'Close',sentAll:'Done. Offer sent to {n} customers.',allSent:'Everyone in this list has been sent the offer.',offerSentOn:'Offer sent {d}',sendAgain:'Send again',
   mobileReq:'Mobile number',needPhone:'Enter the customer\'s 10-digit mobile number',logout:'Logout',
   optional:'optional',
   hello:'Hello, {n}',tapToAdd:'Tap to add a vehicle',vehToday:'Vehicles today',lockedPin:'Locked. Enter your PIN',
@@ -256,6 +264,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
+  sendAll:'అందరికీ పంపండి',sendHow:'ఆకుపచ్చ బటన్ నొక్కి, వాట్సాప్‌లో Send నొక్కి, తర్వాతి కస్టమర్ కోసం ఇక్కడికి తిరిగి రండి.',skip:'దాటవేయి',stop:'ఆపండి',close2:'మూసివేయి',sentAll:'అయిపోయింది. {n} కస్టమర్లకు ఆఫర్ పంపారు.',allSent:'ఈ లిస్ట్‌లో అందరికీ ఆఫర్ పంపారు.',offerSentOn:'ఆఫర్ పంపారు {d}',sendAgain:'మళ్ళీ పంపండి',
   mobileReq:'మొబైల్ నంబర్',needPhone:'కస్టమర్ 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి',logout:'లాగ్ అవుట్',
   optional:'ఐచ్ఛికం',
   hello:'నమస్తే, {n}',tapToAdd:'వాహనం జోడించడానికి నొక్కండి',vehToday:'ఈరోజు వాహనాలు',lockedPin:'లాక్ అయింది. మీ PIN నమోదు చేయండి',
@@ -277,7 +286,7 @@ var T={
    Paste your Apps Script Web app URL (ends in /exec) here.
    ========================================================= */
 var APP_URL='https://script.google.com/macros/s/AKfycbwW24Q07XEZu6LPLIUu4K8tEw_HjYYRxjsZoBzhzycrCetpC5A2r-YpENNc2BB6FWz12A/exec';
-var APP_VERSION='2.8';   // must match APP_VERSION in Code.gs
+var APP_VERSION='2.9';   // must match APP_VERSION in Code.gs
 
 function cleanCode(c){return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 var SHOP=(function(){
@@ -436,6 +445,7 @@ function applyResult(job,res){
    if(res.wash.date===D.today)replaceIn(D.washes,res.wash)}
  if(job.op==='collectDue'){upsertCustomer(res.customer);if(res.payment)replaceIn(D.payments,res.payment)}
  if(job.op==='addExpense'){replaceIn(D.expenses,res.expense)}
+ if(job.op==='markOffer'&&res.customer){upsertCustomer(res.customer)}
  if(job.op==='deleteEntry'){upsertCustomer(res.customer)}
  if(job.op==='closeDay'){D.close=res.close}
 }
@@ -711,10 +721,13 @@ function custView(){
    '<div class="banner b-bad" style="text-align:left">'+t('awayCount').replace('{n}',away.length).replace('{m}',mo)+'</div>'+
    '<label class="sub" for="offer" style="font-weight:700">✉️ '+t('offer')+'</label>'+
    '<textarea class="report" id="offer" style="min-height:96px;font-family:var(--font);font-size:16px">'+esc(ui.offer)+'</textarea>'+
+   sendAllHtml(away)+
    '<div class="list">'+(away.map(function(c){
+    var sent=offerDone(c);
     return '<div class="row"><div class="main"><div class="plate num">'+esc(c.plate)+'</div><div class="sub">'+esc(c.name||'—')+' · '+esc(c.phone)+'</div>'+
-     '<div class="sub" style="color:var(--bad);font-weight:700">🕒 '+t('lastVisit')+': '+ago(c.last)+'</div></div>'+
-     (String(c.phone).replace(/\D/g,'').length>=10?'<a class="wa" data-cid="'+esc(c.id)+'" href="'+waLink(c)+'" target="_blank" rel="noopener">💬 '+t('sendWa')+'</a>':'')+'</div>'}).join('')||
+     '<div class="sub" style="color:var(--bad);font-weight:700">🕒 '+t('lastVisit')+': '+ago(c.last)+'</div>'+
+     (sent?'<div class="sub" style="color:var(--good);font-weight:700">✓ '+t('offerSentOn').replace('{d}',ago(c.offerSent))+'</div>':'')+'</div>'+
+     (phoneOk(c.phone)?'<a class="wa'+(sent?' done':'')+'" data-cid="'+esc(c.id)+'" href="'+waLink(c)+'" target="_blank" rel="noopener">💬 '+(sent?t('sendAgain'):t('sendWa'))+'</a>':'')+'</div>'}).join('')||
     '<div class="row"><div class="main sub">'+t('noMatch')+'</div></div>')+'</div>';
   return h;
  }
@@ -733,6 +746,33 @@ function custView(){
   return r+'</div>';
  }).join('')||'<div class="row"><div class="main sub">'+t('noMatch')+'</div></div>')+'</div>';
  return h;
+}
+/* "Send to all": one customer after another; each tap opens WhatsApp with the offer typed, the owner presses Send */
+function offerDone(c){return !!(c.offerSent&&(!c.last||c.offerSent>=c.last))}   // sent since the last visit
+function sendAllHtml(away){
+ if(ui.sq){
+  if(ui.si>=ui.sq.length)return '<div class="banner b-good">✓ '+t('sentAll').replace('{n}',ui.sq.length)+'</div><button class="add" id="sq-close">'+t('close2')+'</button>';
+  var c=cust(ui.sq[ui.si]);if(!c){ui.si++;return sendAllHtml(away)}
+  return '<div class="sendq"><div class="sq-top"><b>📤 '+t('sendAll')+'</b><span class="num">'+(ui.si+1)+' / '+ui.sq.length+'</span></div>'+
+   '<div class="sq-bar"><span style="width:'+Math.round(ui.si*100/ui.sq.length)+'%"></span></div>'+
+   '<div class="plate num" style="font-size:22px">'+esc(c.plate)+'</div><div class="sub">'+esc(c.name||'—')+' · '+esc(c.phone)+' · 🕒 '+ago(c.last)+'</div>'+
+   '<a class="big wa-big" data-cid="'+esc(c.id)+'" data-seq="1" href="'+waLink(c)+'" target="_blank" rel="noopener">💬 '+t('sendWa')+'</a>'+
+   '<div class="sq-btns"><button class="add" id="sq-skip">'+t('skip')+' →</button><button class="add" id="sq-stop">'+t('stop')+'</button></div>'+
+   '<div class="hint">'+t('sendHow')+'</div></div>';
+ }
+ var todo=away.filter(function(c){return phoneOk(c.phone)&&!offerDone(c)});
+ return todo.length?'<button class="big" id="sq-start" style="background:var(--wa)">📤 '+t('sendAll')+' ('+todo.length+')</button>':
+  (away.length?'<div class="banner b-good">✓ '+t('allSent')+'</div>':'');
+}
+function startSendAll(){
+ var mo=ui.months||3;
+ var away=D.customers.filter(function(c){return c.last&&daysSince(c.last)>=mo*30}).sort(function(a,b){return daysSince(b.last)-daysSince(a.last)});
+ ui.sq=away.filter(function(c){return phoneOk(c.phone)&&!offerDone(c)}).map(function(c){return c.id});ui.si=0;render();
+}
+function markOfferSent(cid){
+ var c=cust(cid);if(!c)return;
+ c.offerSent=D.today;saveData();
+ enqueue('markOffer',{customerId:cid,at:Date.now()});
 }
 function waLink(c){return 'https://wa.me/'+waNum(c.phone)+'?text='+encodeURIComponent((ui.offer||'').replace(/\{name\}/g,c.name||''))}
 
@@ -912,6 +952,12 @@ function closeDay(){
 }
 
 document.addEventListener('click',function(e){
+ var wa=e.target.closest&&e.target.closest('a.wa,a.wa-big');
+ if(wa&&wa.dataset.cid){
+  markOfferSent(wa.dataset.cid);
+  if(wa.dataset.seq){ui.si++;setTimeout(render,400)}else setTimeout(render,400);
+  return;   // the link itself opens WhatsApp
+ }
  var b=e.target.closest('button');if(!b)return;
  var d=b.dataset;
  if(d.lang){if(ui.offer===t('offerDefault'))ui.offer=null;lang=d.lang;LS.set('lang',lang);render();return}
@@ -926,6 +972,9 @@ document.addEventListener('click',function(e){
  if(d.go&&isMgr()&&['home','wash'].indexOf(d.go)<0)return;
  if(d.go){if(readOnly()&&d.go!=='home'&&d.go!=='cust'&&d.go!=='branches'){toast(t('locked'),true);return}go(d.go);if(d.go==='branches')loadBranches();return}
  if(d.switch){switchShop(d.switch);return}
+ if(b.id==='sq-start'){startSendAll();return}
+ if(b.id==='sq-skip'){ui.si++;render();return}
+ if(b.id==='sq-stop'||b.id==='sq-close'){ui.sq=null;render();return}
  if(b.id==='branchbtn'){
   ui.bmenu=!ui.bmenu;render();
   if(ui.bmenu)call('api',SHOP,token,'branches').then(function(res){
@@ -979,7 +1028,7 @@ document.addEventListener('input',function(e){
  else if(id==='cq'){ui.q=e.target.value;render()}
  else if(id==='amt'){ui.amt=e.target.value.replace(/[^\d]/g,'');render()}
  else if(id==='offer'){ui.offer=e.target.value;
-  [].forEach.call(document.querySelectorAll('a.wa'),function(a){var c=cust(a.getAttribute('data-cid'));if(c)a.setAttribute('href',waLink(c))});}
+  [].forEach.call(document.querySelectorAll('a.wa,a.wa-big'),function(a){var c=cust(a.getAttribute('data-cid'));if(c)a.setAttribute('href',waLink(c))});}
 });
 document.addEventListener('submit',function(e){
  e.preventDefault();
