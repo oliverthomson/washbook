@@ -19,12 +19,13 @@
   --wash:#0A78A0; --cust:#1C8556; --exp:#B86E12; --close:#5040A8;
   --good:#1B8A4A; --good-bg:#DDF3E5; --bad:#C0352A; --bad-bg:#FBE3E0; --warn:#9A6A00; --warn-bg:#FFF1CC;
   --on:#FFFFFF; --wa:#1FA855;
+  --logo-bg:#D4ECF4; --logo-drop:#2A9CC6; --logo-win:#CFEAF5;
   --font:"Baloo Tammudu 2","Noto Sans Telugu","Nirmala UI",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root{
   --bg:#0B1A20; --surface:#13262E; --sunk:#0F2027; --ink:#E4F0F3; --muted:#8FA8B3; --line:#24404B;
   --wash:#2A9CC6; --cust:#2EA06C; --exp:#D08A2A; --close:#7565CC;
-  --good:#4CC57E; --good-bg:#123826; --bad:#F06E62; --bad-bg:#3D1B18; --warn:#E8B84A; --warn-bg:#3A2E10; color-scheme:dark}}
+  --good:#4CC57E; --good-bg:#123826; --bad:#F06E62; --bad-bg:#3D1B18; --warn:#E8B84A; --warn-bg:#3A2E10; --logo-bg:#14313B; --logo-drop:#4FB8DE; --logo-win:#9FD3E6; color-scheme:dark}}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.35;
@@ -47,6 +48,13 @@ button{cursor:pointer}
 .today{background:var(--surface);border-radius:18px;padding:14px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border:1px solid var(--line)}
 .today.two{grid-template-columns:repeat(2,1fr)}
 .today.one{grid-template-columns:1fr}
+.logo{display:block;max-width:60vw;height:auto;margin-bottom:-6px}
+.phonebox{display:flex;flex-direction:column;gap:6px;font-weight:800;font-size:15px;color:var(--ink)}
+.phonebox input{font-size:22px;font-weight:800;border-width:2px;border-color:var(--wash)}
+.phonebox.bad input{border-color:var(--bad)}
+.foot{align-items:center}
+.foot .who{color:var(--muted);font-size:15px;font-weight:700}
+.foot .logout{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:var(--surface);color:var(--ink);font-weight:700;font-size:14px}
 .mhello{display:flex;flex-direction:column;gap:2px;font-size:24px;font-weight:800;line-height:1.2;padding:2px 2px 0}
 .mhello span{font-size:14px;font-weight:600;color:var(--muted)}
 .mbig{border:0;border-radius:24px;background:var(--wash);color:var(--on);display:flex;align-items:center;gap:16px;padding:22px 20px;min-height:150px;text-align:left;box-shadow:0 4px 0 rgba(0,0,0,.18),0 10px 24px rgba(10,120,160,.25);width:100%}
@@ -217,6 +225,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
+  mobileReq:'Mobile number',needPhone:'Enter the customer\'s 10-digit mobile number',logout:'Logout',
   optional:'optional',
   hello:'Hello, {n}',tapToAdd:'Tap to add a vehicle',vehToday:'Vehicles today',lockedPin:'Locked. Enter your PIN',
   blindHint:'Count the cash in the box and save. The owner checks it.',ownerChecks:'The owner will check the cash.',countedBy:'Counted by {by} at {at}',
@@ -247,6 +256,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
+  mobileReq:'మొబైల్ నంబర్',needPhone:'కస్టమర్ 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి',logout:'లాగ్ అవుట్',
   optional:'ఐచ్ఛికం',
   hello:'నమస్తే, {n}',tapToAdd:'వాహనం జోడించడానికి నొక్కండి',vehToday:'ఈరోజు వాహనాలు',lockedPin:'లాక్ అయింది. మీ PIN నమోదు చేయండి',
   blindHint:'పెట్టెలో నగదు లెక్కించి సేవ్ చేయండి. ఓనర్ చెక్ చేస్తారు.',ownerChecks:'ఓనర్ నగదు చెక్ చేస్తారు.',countedBy:'{by} {at}కి లెక్కించారు',
@@ -267,7 +277,7 @@ var T={
    Paste your Apps Script Web app URL (ends in /exec) here.
    ========================================================= */
 var APP_URL='https://script.google.com/macros/s/AKfycbwW24Q07XEZu6LPLIUu4K8tEw_HjYYRxjsZoBzhzycrCetpC5A2r-YpENNc2BB6FWz12A/exec';
-var APP_VERSION='2.7';   // must match APP_VERSION in Code.gs
+var APP_VERSION='2.8';   // must match APP_VERSION in Code.gs
 
 function cleanCode(c){return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 var SHOP=(function(){
@@ -288,7 +298,18 @@ var view='home', ui={}, net='ok', busy=false, pinErr='', fatal='';
 function t(k){return (T[lang]&&T[lang][k])||T.en[k]||k}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function rs(n){return '₹'+Number(n||0).toLocaleString('en-IN')}
-function nowHM(){var d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+/* Indian Standard Time on every phone (IST = UTC+05:30, no daylight saving), whatever the phone's own time zone */
+function istNow(){var d=new Date(Date.now()+330*60000);return {date:d.toISOString().slice(0,10),hm:d.toISOString().slice(11,16)}}
+function istToday(){return istNow().date}
+function nowHM(){return istNow().hm}
+/* a new day in India: yesterday's saved lists are cleared at once, then today's are fetched */
+function checkDay(){
+ if(!D||!D.today||D.today===istToday())return false;
+ D.today=istToday();D.washes=[];D.expenses=[];D.payments=[];D.close=null;saveData();
+ if(view==='home'||view==='close')render();
+ refresh(true);
+ return true;
+}
 function newId(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function saveData(){LS.set('data',D)}
 function saveQ(){LS.set('queue',Q)}
@@ -314,6 +335,12 @@ function isoLocal(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(
 function daysSince(d){if(!d)return null;var base=D&&D.today?D.today:isoLocal(new Date());return Math.round((new Date(base+'T00:00:00')-new Date(d+'T00:00:00'))/864e5)}
 function ago(d){var n=daysSince(d);if(n===null)return t('never');if(n<=0)return t('d0');if(n===1)return t('d1');if(n<30)return t('dN').replace('{n}',n);var m=Math.floor(n/30);return m===1?t('m1'):t('mN').replace('{n}',m)}
 function waNum(p){var d=String(p).replace(/\D/g,'');var cc=(D&&D.settings.countryCode)||'91';if(d.charAt(0)==='0')d=d.slice(1);if(d.length===10)d=cc+d;return d}
+function phoneDigits(p){var d=String(p||'').replace(/\D/g,'');if(d.length===12&&d.slice(0,2)==='91')d=d.slice(2);if(d.length===11&&d.charAt(0)==='0')d=d.slice(1);return d}
+function phoneOk(p){return phoneDigits(p).length===10}
+function phoneBox(){
+ var bad=ui.nphone&&!phoneOk(ui.nphone);
+ return '<label class="phonebox'+(bad?' bad':'')+'"><span>📞 '+t('mobileReq')+' *</span><input class="field num" id="n-phone" inputmode="tel" maxlength="14" placeholder="98xxxxxxxx" value="'+esc(ui.nphone||'')+'"></label>';
+}
 function isMgr(){return !!(D&&D.user&&D.user.role!=='owner')}
 function isFree(c){var n=D.settings.loyaltyEvery;return n>0&&c.visits%n===n-1}
 function minsAgo(hm){var a=nowHM().split(':'),b=String(hm).split(':');return (+a[0]*60+ +a[1])-(+b[0]*60+ +b[1])}
@@ -401,7 +428,7 @@ function remap(oldId,newId){
  });
  saveQ();
 }
-function replaceIn(list,item){for(var i=0;i<list.length;i++){if(list[i].id===item.id){list[i]=item;return}}}
+function replaceIn(list,item){for(var i=0;i<list.length;i++){if(list[i].id===item.id){list[i]=item;return}}list.push(item)}
 function applyResult(job,res){
  if(!res||res.dup||res.gone)return;
  if(job.op==='addCustomer'){remap(job.p.id,res.customer.id);upsertCustomer(res.customer)}
@@ -414,7 +441,7 @@ function applyResult(job,res){
 }
 
 function refresh(force){
- if(!token||(busy&&!force)||(Q.length&&net!=='locked'))return;
+ if(!token||(busy&&!force)||(Q.length&&net!=='locked'&&!force))return;
  call('api',SHOP,token,'refresh').then(function(res){
   var dayChanged=!D||D.today!==res.today;
   D=res;saveData();fatal='';
@@ -476,7 +503,7 @@ function switchShop(code){
 }
 function pickView(){
  return '<div class="top"><div style="flex:1"></div>'+langToggle()+'</div>'+
-  '<form class="pinbox" id="pickform"><img src="icon-192.png" alt="" width="64" height="64" style="border-radius:16px">'+
+  '<form class="pinbox" id="pickform">'+logoSvg(150)+
   '<div class="shop">WashBook</div><div style="font-weight:700">'+t('shopCode')+'</div>'+
   '<input class="plate-in num" id="shopcode" style="text-align:center;max-width:260px" placeholder="FAM278" autocomplete="off" autocapitalize="characters" maxlength="10" value="'+esc(ui.code||'')+'">'+
   '<div class="err" role="alert">'+(ui.bad?t('badLink'):'')+'</div>'+
@@ -508,7 +535,7 @@ function pinHash(p){var h=2166136261,str='wb:'+p;for(var i=0;i<str.length;i++){h
 function touchActive(force){var n=Date.now();if(force||n-(touchActive.l||0)>5000){touchActive.l=n;LS.set('active',n)}}
 function idleTooLong(){var a=LS.get('active',0);return !a||Date.now()-a>IDLE_MS}
 function lockApp(){if(!token||locked)return;locked=true;view='login';ui={pin:''};pinErr='';render()}
-function unlock(){locked=false;touchActive(true);pinErr='';if(D)go('home');else{view='loading';render();refresh(true)}}
+function unlock(){locked=false;touchActive(true);pinErr='';checkDay();if(D)go('home');else{view='loading';render();refresh(true)}}
 
 /* ============ Screens ============ */
 function langToggle(){
@@ -547,13 +574,29 @@ function header(title){
  return '<div class="top"><button class="back" id="back" data-go="home">'+t('back')+'</button><div style="flex:1"></div>'+syncHtml()+langToggle()+'</div><h1>'+title+'</h1>';
 }
 
+/* car-wash badge: a car with water drops and soap bubbles */
+function logoSvg(w){
+ return '<svg class="logo" width="'+w+'" viewBox="0 0 160 112" role="img" aria-label="WashBook">'+
+  '<circle cx="80" cy="60" r="50" fill="var(--logo-bg)"/>'+
+  '<path d="M80 8c5 7 8 11 8 15a8 8 0 0 1-16 0c0-4 3-8 8-15z" fill="var(--logo-drop)"/>'+
+  '<path d="M58 20c3 4 5 7 5 9a5 5 0 0 1-10 0c0-2 2-5 5-9z" fill="var(--logo-drop)" opacity=".75"/>'+
+  '<path d="M102 20c3 4 5 7 5 9a5 5 0 0 1-10 0c0-2 2-5 5-9z" fill="var(--logo-drop)" opacity=".75"/>'+
+  '<path d="M24 82v-10c0-6 4-10 10-11l12-3 13-15c3-3 6-4 10-4h26c4 0 7 2 10 4l15 15 13 3c6 1 9 5 9 11v10c0 3-2 5-5 5H29c-3 0-5-2-5-5z" fill="var(--wash)"/>'+
+  '<path d="M55 57l10-12c1-1 3-2 5-2h10v14z" fill="var(--logo-win)"/><path d="M86 43h9c2 0 4 1 5 2l11 12H86z" fill="var(--logo-win)"/>'+
+  '<rect x="26" y="66" width="10" height="5" rx="2" fill="var(--logo-win)"/>'+
+  '<circle cx="52" cy="87" r="12" fill="var(--ink)"/><circle cx="52" cy="87" r="5" fill="var(--logo-bg)"/>'+
+  '<circle cx="110" cy="87" r="12" fill="var(--ink)"/><circle cx="110" cy="87" r="5" fill="var(--logo-bg)"/>'+
+  '<g fill="#fff" stroke="var(--logo-drop)" stroke-width="2"><circle cx="30" cy="40" r="7"/><circle cx="20" cy="54" r="4"/><circle cx="132" cy="36" r="8"/><circle cx="144" cy="52" r="4.5"/><circle cx="123" cy="20" r="4"/></g>'+
+  '<path d="M66 70h28" stroke="var(--logo-win)" stroke-width="3" stroke-linecap="round" opacity=".6"/>'+
+  '</svg>';
+}
 function loginView(){
  var shop=D&&D.settings?D.settings.shopName:(LS.get('shopName','')||'');
  var p=ui.pin||'',d='';
  for(var i=0;i<Math.max(4,p.length);i++)d+='<span class="'+(i<p.length?'on':'')+'"></span>';
  var keys=['1','2','3','4','5','6','7','8','9','⌫','0','✓'];
  return '<div class="top"><div style="flex:1"></div>'+langToggle()+'</div>'+
-  '<div class="pinbox"><div class="drop" style="width:46px;height:46px"></div><div class="shop">'+(shop?esc(shop):'&nbsp;')+'</div><div class="sub" style="margin-top:-12px;font-weight:700">WashBook</div>'+
+  '<div class="pinbox">'+logoSvg(150)+'<div class="shop">'+(shop?esc(shop):'&nbsp;')+'</div><div class="sub" style="margin-top:-12px;font-weight:700">WashBook</div>'+
   '<div style="font-weight:700">'+(locked?'🔒 '+t('lockedPin'):t('enterPin'))+'</div><div class="pindots">'+d+'</div>'+
   '<div class="err" role="alert">'+(pinErr?t('wrongPin'):(ui.busy?t('loading'):''))+'</div>'+
   '<div class="pad">'+keys.map(function(k){return '<button data-key="'+k+'" class="'+(k==='✓'?'okk':'')+'" aria-label="'+(k==='⌫'?'delete':k==='✓'?'enter':k)+'">'+k+'</button>'}).join('')+'</div></div>';
@@ -587,7 +630,7 @@ function homeView(){
    '<div class="tiles">'+
    tile('wash','t-wash','🚗',t('wash'))+tile('cust','t-cust','👥',t('cust'))+tile('exp','t-exp','💸',t('exp'))+tile('close','t-close','💰',t('close'))+'</div>')+
  '<h2>'+t('recent')+'</h2><div class="list">'+rows+'</div>'+
- '<div class="foot"><button id="refresh">↻ '+t('refresh')+'</button><button id="logout">👤 '+esc(D.user.name)+' · '+t('switchUser')+'</button></div><div class="ver">WashBook '+APP_VERSION+' · '+esc(D.version||'?')+'</div>';
+ '<div class="foot"><button id="refresh">↻ '+t('refresh')+'</button><span class="who">👤 '+esc(D.user.name)+'</span><button id="logout" class="logout">⏻ '+t('logout')+'</button></div><div class="ver">WashBook '+APP_VERSION+' · '+esc(D.version||'?')+'</div>';
 }
 function confirmDel(kind,id){
  return '<div class="confirm"><span>'+t('delQ')+'</span><button class="yes" data-del="'+kind+':'+esc(id)+'">'+t('del')+'</button><button class="no" data-delno="1">'+t('no')+'</button></div>';
@@ -602,6 +645,7 @@ function washView(){
    '<div class="sub">'+esc(c.name)+(c.name&&c.phone?' · ':'')+esc(c.phone)+' · '+c.visits+' '+t('visits')+'</div>'+
    '<div class="sub">🕒 '+t('lastVisit')+': <b>'+ago(c.last)+'</b></div>'+dots(c.visits)+'</div>'+
    '<button class="x" id="unpick" aria-label="Change">✕</button></div>';
+  if(!phoneOk(c.phone))h+=phoneBox();   // an older customer without a mobile number: ask for it now
   if(c.due>0){
    h+='<div class="banner b-bad duebar"><span>'+t('oldDue')+': '+rs(c.due)+'</span><button class="collect" data-colask="'+esc(c.id)+'">💵 '+t('collect')+'</button></div>';
    if(ui.col===c.id)h+='<div class="confirm go"><span>'+t('collectQ').replace('{amt}',rs(c.due))+'</span><button class="yes" data-col="'+esc(c.id)+'">'+t('yes')+'</button><button class="no" data-colno="1">'+t('no')+'</button></div>';
@@ -619,10 +663,11 @@ function washView(){
     // typed a phone number: it is the customer's phone; ask (optionally) for the vehicle number instead
     var typedPhone=/^\d{10,}$/.test(q);
     h+='<div class="newveh"><span>🆕 '+(typedPhone?t('newCust')+' · 📞 ':t('newVeh')+': ')+'<b class="num">'+esc(typedPhone?q:ui.q.trim().toUpperCase())+'</b></span>'+
-     (ui.adding?'':'<button class="linkbtn" id="add">+ '+(typedPhone?t('plate'):t('phone'))+' / '+t('nameShort')+'</button>')+'</div>';
+     (ui.adding?'':'<button class="linkbtn" id="add">+ '+(typedPhone?t('plate')+' / ':'')+t('nameShort')+'</button>')+'</div>';
+    // a vehicle number was typed: the mobile number is required, so its box is always shown
+    if(!typedPhone)h+=phoneBox();
     if(ui.adding)h+='<div class="list" style="padding:12px;display:flex;flex-direction:column;gap:10px">'+
-     (typedPhone?'<input class="field num" id="n-plate" placeholder="'+t('plate')+' ('+t('optional')+')" autocapitalize="characters" value="'+esc(ui.nplate||'')+'">'
-                :'<input class="field num" id="n-phone" placeholder="'+t('phone')+' ('+t('optional')+')" inputmode="tel" value="'+esc(ui.nphone||'')+'">')+
+     (typedPhone?'<input class="field num" id="n-plate" placeholder="'+t('plate')+' ('+t('optional')+')" autocapitalize="characters" value="'+esc(ui.nplate||'')+'">':'')+
      '<input class="field" id="n-name" placeholder="'+t('name')+'" value="'+esc(ui.nname||'')+'"></div>';
    }
   } else h+='<div class="hint">'+t('plateHint')+'</div>';
@@ -645,9 +690,10 @@ function washView(){
   return '<button id="s-'+esc(s.id)+'" data-svc="'+esc(s.id)+'" aria-pressed="'+(ui.sel.indexOf(s.id)>=0)+'"><span class="n">'+esc(s.ic)+' '+esc(s[lang])+'</span><span class="p num">'+rs(s.price)+'</span></button>'}).join('')+'</div>';
  var free=c?isFree(c):false;
  var sum=ui.sel.reduce(function(a,id){var s=svc(id);return a+(s?s.price:0)},0);
- var ready=ui.sel.length>0&&(c||q.length>=3);
+ var needPhone=!phoneOk(c?c.phone:(/^\d{10,}$/.test(q)?q:ui.nphone));
+ var ready=ui.sel.length>0&&(c||q.length>=3)&&!needPhone;
  h+='<div class="total"><span>'+t('total')+'</span><b class="num">'+(free&&sum?'<s style="opacity:.4;font-size:20px">'+rs(sum)+'</s> ₹0':rs(free?0:sum))+'</b></div>'+
-  '<div class="hint">'+(ready?t('payHow'):(!c&&q.length<3?t('needVeh'):t('pickSvc')))+'</div><div class="paybtns">'+
+  '<div class="hint">'+(ready?t('payHow'):(!c&&q.length<3?t('needVeh'):(needPhone?'📞 '+t('needPhone'):t('pickSvc'))))+'</div><div class="paybtns">'+
   '<button class="b-cash" id="pay-cash" data-pay="cash" '+(ready?'':'disabled')+'><span class="ic">💵</span>'+t('cash')+'</button>'+
   '<button class="b-card" id="pay-card" data-pay="card" '+(ready&&!free?'':'disabled')+'><span class="ic">💳</span>'+t('card')+'</button>'+
   '<button class="b-credit" id="pay-credit" data-pay="credit" '+(ready&&!free?'':'disabled')+'><span class="ic">📒</span>'+t('credit')+'</button></div>';
@@ -819,13 +865,14 @@ function saveWash(pay){
   c=D.customers.filter(function(x){return normPlate(x.plate)===key||(/^\d{10,}$/.test(key)&&String(x.phone).replace(/\D/g,'')===key)})[0];
   if(!c){
    var isPhone=/^\d{10,}$/.test(key);
-   var phone=isPhone?key:(ui.nphone||'').replace(/[^\d+]/g,'');
+   var phone=isPhone?phoneDigits(key):phoneDigits(ui.nphone);
    var plate=isPhone?((ui.nplate||'').trim().toUpperCase().replace(/\s+/g,' ')||key):raw;
    c={id:newId('C'),plate:plate,phone:phone,name:(ui.nname||'').trim(),visits:0,due:0,last:null};
    D.customers.push(c);
   }
   ui.cid=c.id;
  }
+ if(!phoneOk(c.phone)){if(!phoneOk(ui.nphone))return;c.phone=phoneDigits(ui.nphone)}
  var free=isFree(c),amt=free?0:ui.sel.reduce(function(a,id){var s=svc(id);return a+(s?s.price:0)},0);
  if(free)pay='cash';
  var at=Date.now(),w={id:newId('W'),date:D.today,t:nowHM(),cid:c.id,plate:c.plate,svc:ui.sel.slice(),names:'',amt:amt,pay:pay,free:free,staff:D.user.name};
@@ -872,7 +919,9 @@ document.addEventListener('click',function(e){
   if(d.key==='⌫')ui.pin=(ui.pin||'').slice(0,-1);
   else if(d.key==='✓')return doLogin();
   else if((ui.pin||'').length<8)ui.pin=(ui.pin||'')+d.key;
-  pinErr='';render();return;
+  pinErr='';render();
+  if(ui.pin.length===4)setTimeout(doLogin,120);   // PINs are 4 digits: open as soon as the 4th is typed
+  return;
  }
  if(d.go&&isMgr()&&['home','wash'].indexOf(d.go)<0)return;
  if(d.go){if(readOnly()&&d.go!=='home'&&d.go!=='cust'&&d.go!=='branches'){toast(t('locked'),true);return}go(d.go);if(d.go==='branches')loadBranches();return}
@@ -925,7 +974,7 @@ document.addEventListener('click',function(e){
 document.addEventListener('input',function(e){
  var id=e.target.id;
  if(id==='q'){ui.q=e.target.value;render()}
- else if(id==='n-phone'){ui.nphone=e.target.value}else if(id==='n-plate'){ui.nplate=e.target.value}else if(id==='n-name'){ui.nname=e.target.value}
+ else if(id==='n-phone'){ui.nphone=e.target.value;render()}else if(id==='n-plate'){ui.nplate=e.target.value}else if(id==='n-name'){ui.nname=e.target.value}
  else if(id==='shopcode'){ui.code=e.target.value}
  else if(id==='cq'){ui.q=e.target.value;render()}
  else if(id==='amt'){ui.amt=e.target.value.replace(/[^\d]/g,'');render()}
@@ -937,11 +986,11 @@ document.addEventListener('submit',function(e){
  if(e.target.id==='pickform'){var c=cleanCode(document.getElementById('shopcode').value);if(c.length>=4)openShop(c)}
 });
 document.addEventListener('keydown',function(e){
- if(view==='login'){if(/^\d$/.test(e.key)){ui.pin=(ui.pin||'')+e.key;pinErr='';render()}else if(e.key==='Backspace'){ui.pin=(ui.pin||'').slice(0,-1);render()}else if(e.key==='Enter')doLogin()}
+ if(view==='login'){if(/^\d$/.test(e.key)){ui.pin=(ui.pin||'')+e.key;pinErr='';render();if(ui.pin.length===4)setTimeout(doLogin,120)}else if(e.key==='Backspace'){ui.pin=(ui.pin||'').slice(0,-1);render()}else if(e.key==='Enter')doLogin()}
 });
-document.addEventListener('visibilitychange',function(){if(!document.hidden){if(token&&idleTooLong())lockApp();flush();refresh()}});
+document.addEventListener('visibilitychange',function(){if(!document.hidden){if(token&&idleTooLong())lockApp();if(!checkDay()){flush();refresh()}}});
 ['pointerdown','keydown','input','touchstart'].forEach(function(ev){document.addEventListener(ev,function(){if(token&&!locked)touchActive()},true)});
-setInterval(function(){if(token&&!locked&&idleTooLong())lockApp()},15000);
+setInterval(function(){if(token&&!locked&&idleTooLong())lockApp();checkDay()},15000);
 window.addEventListener('online',function(){flush()});
 setInterval(function(){flush();refresh()},5*60*1000);
 
@@ -950,6 +999,7 @@ function boot(){
  if(APP_URL.indexOf('PASTE_')===0){fatal='Set APP_URL in index.html';return render()}
  if(!SHOP){view='pick';ui={code:''};return render()}
  if(!token){view='login';ui={pin:''};render();fetchShopName();return}
+ checkDay();
  if(idleTooLong()){locked=true;view='login';ui={pin:''};render();flush();refresh(!D);return}
  if(D)go('home');else{view='loading';render()}
  flush();refresh(!D);
