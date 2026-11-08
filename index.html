@@ -267,6 +267,7 @@ html[lang="te"] .wsec-t{text-transform:none;letter-spacing:0;font-size:var(--fs-
 .plate-in{width:100%;height:56px;padding:0 var(--sp-4);border:1px solid var(--border-strong);border-radius:var(--r-btn);background:var(--surface);font-size:20px;font-weight:var(--fw-bold);letter-spacing:.04em;text-transform:uppercase;color:var(--text);transition:border-color .15s,box-shadow .15s}
 .plate-in::placeholder{text-transform:none;letter-spacing:0;font-weight:var(--fw-regular);font-size:16px;color:var(--text-3)}
 .input.up{text-transform:uppercase;font-weight:var(--fw-semibold);letter-spacing:.03em}
+.input.up::placeholder{text-transform:none;font-weight:var(--fw-regular);letter-spacing:0}
 .input.area{height:auto;min-height:104px;padding:var(--sp-3) var(--sp-4);line-height:1.5;resize:vertical}
 .picked{display:flex;align-items:flex-start;gap:var(--sp-3)}
 .picked .main{display:flex;flex-direction:column;gap:2px}
@@ -283,6 +284,8 @@ html[lang="te"] .wsec-t{text-transform:none;letter-spacing:0;font-size:var(--fs-
 .nv-txt{flex:1;min-width:120px;display:flex;flex-direction:column}
 .nv-txt b{font-size:var(--fs-section);letter-spacing:.03em}
 .addf{display:flex;flex-direction:column;gap:var(--sp-3)}
+.addf .bad .input{border-color:var(--danger)}
+.hint.left{text-align:left;display:flex;align-items:center;gap:6px;color:var(--warning);font-weight:var(--fw-medium)}
 .dots{display:flex;gap:4px;margin-top:4px}
 .dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--primary)}.dot.on{background:var(--primary)}
 .vcat{font-size:var(--fs-label);font-weight:var(--fw-semibold);color:var(--text-2);margin:var(--sp-1) 0 calc(-1 * var(--sp-2))}
@@ -552,7 +555,7 @@ var T={
   washSaved:'Wash saved',collections:'Total collections',payBreak:'Payment breakdown',adjust:'Cash summary',transactions:'Transactions',noTx:'No washes on this day',
   moreTitle:'More',language:'Language',refreshData:'Refresh data',owner:'Owner',manager:'Manager',allTypes:'All',help:'Help & renewal',noAway:'Everyone has come recently',
   rewards:'WashBook Rewards',rewardsDone:'{k} / {n} washes',rewardsMore:'Complete {k} more washes to get your next wash FREE!',rewardsNext:'Your next wash is FREE!',
-  needNet:'Needs internet to load this day',updated:'Up to date',noNet:'No internet. Try again later.',
+  needNet:'Needs internet to load this day',updated:'Up to date',newCustAll:'New customer: fill in all the details below.',needPlate:'Type the vehicle number',needName:'Type the customer\'s name',needDetails:'Fill in the new customer\'s details',noNet:'No internet. Try again later.',
   renewal:'Renewal',helpT:'Help',helpLead:'Simple steps for everyday work. Tap the language button at the top to read in Telugu.',validTill:'till {d}',validTillL:'App valid till',
   renewMsgT:'Your request',renewSend:'Send renewal request',renewHow:'Tapping the button emails your request to WashBook and opens WhatsApp with the same message. Press Send in WhatsApp.',
   renewSent:'Request sent. WashBook will contact you with the payment details.',renewFail:'Email not sent (no internet). Send the WhatsApp message, or try again later.',renewLimit:'You already sent 3 requests today. WashBook will contact you.',
@@ -600,7 +603,7 @@ var T={
   washSaved:'వాష్ సేవ్ అయింది',collections:'మొత్తం వసూళ్లు',payBreak:'చెల్లింపుల వివరాలు',adjust:'నగదు వివరాలు',transactions:'లావాదేవీలు',noTx:'ఈ రోజు వాష్‌లు లేవు',
   moreTitle:'మరిన్ని',language:'భాష',refreshData:'డేటా రిఫ్రెష్',owner:'యజమాని',manager:'మేనేజర్',allTypes:'అన్నీ',help:'సహాయం & రెన్యూవల్',noAway:'అందరూ ఇటీవల వచ్చారు',
   rewards:'వాష్‌బుక్ రివార్డ్స్',rewardsDone:'{k} / {n} వాష్‌లు',rewardsMore:'ఇంకా {k} వాష్‌లు పూర్తి చేస్తే తదుపరి వాష్ ఉచితం!',rewardsNext:'మీ తదుపరి వాష్ ఉచితం!',
-  needNet:'ఈ రోజు చూడటానికి ఇంటర్నెట్ కావాలి',updated:'అప్‌డేట్ అయింది',noNet:'ఇంటర్నెట్ లేదు. తర్వాత మళ్ళీ ప్రయత్నించండి.',
+  needNet:'ఈ రోజు చూడటానికి ఇంటర్నెట్ కావాలి',updated:'అప్‌డేట్ అయింది',newCustAll:'కొత్త కస్టమర్: కింద అన్ని వివరాలు నింపండి.',needPlate:'వాహనం నంబర్ టైప్ చేయండి',needName:'కస్టమర్ పేరు టైప్ చేయండి',needDetails:'కొత్త కస్టమర్ వివరాలు నింపండి',noNet:'ఇంటర్నెట్ లేదు. తర్వాత మళ్ళీ ప్రయత్నించండి.',
   renewal:'రెన్యూవల్',helpT:'సహాయం',helpLead:'రోజువారీ పనికి సులభమైన దశలు. ఇంగ్లీష్‌లో చదవడానికి పైన భాష బటన్ నొక్కండి.',validTill:'{d} వరకు',validTillL:'యాప్ చెల్లుబాటు',
   renewMsgT:'మీ అభ్యర్థన',renewSend:'రెన్యూవల్ అభ్యర్థన పంపండి',renewHow:'బటన్ నొక్కితే మీ అభ్యర్థన వాష్‌బుక్‌కి ఈమెయిల్‌గా వెళ్తుంది, అదే సందేశంతో వాట్సాప్ తెరుచుకుంటుంది. వాట్సాప్‌లో పంపు నొక్కండి.',
   renewSent:'అభ్యర్థన పంపబడింది. చెల్లింపు వివరాలతో వాష్‌బుక్ మిమ్మల్ని సంప్రదిస్తుంది.',renewFail:'ఈమెయిల్ వెళ్ళలేదు (ఇంటర్నెట్ లేదు). వాట్సాప్ సందేశం పంపండి, లేదా తర్వాత మళ్ళీ ప్రయత్నించండి.',renewLimit:'ఈరోజు ఇప్పటికే 3 అభ్యర్థనలు పంపారు. వాష్‌బుక్ మిమ్మల్ని సంప్రదిస్తుంది.',
@@ -614,7 +617,7 @@ var T={
    Paste your Apps Script Web app URL (ends in /exec) here.
    ========================================================= */
 var APP_URL='https://script.google.com/macros/s/AKfycbwW24Q07XEZu6LPLIUu4K8tEw_HjYYRxjsZoBzhzycrCetpC5A2r-YpENNc2BB6FWz12A/exec';
-var APP_VERSION='4.1';   // must match APP_VERSION in Code.gs
+var APP_VERSION='4.2';   // must match APP_VERSION in Code.gs
 
 function cleanCode(c){return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 var SHOP=(function(){
@@ -1082,12 +1085,16 @@ function washView(){
    h+=m.map(function(x){return '<button class="match" data-pick="'+esc(x.id)+'"><span class="avatar sm">'+ic(vIcon(x.vehicle),'sm')+'</span><span class="main"><b class="plate num">'+esc(x.plate)+'</b>'+
     '<span class="sub">'+esc(x.name||'—')+(x.phone?' · '+esc(x.phone):'')+' · '+ago(x.last)+'</span></span><span class="badge badge-neutral num">'+x.visits+' '+t('visits')+'</span></button>'}).join('');
    if(!exact){
-    h+='<div class="newveh"><span class="nv-ic">'+ic(typedPhone?'phone':'car-front','sm')+'</span><span class="nv-txt"><span class="sub">'+(typedPhone?t('newCust')+' · '+t('mobileReq'):t('newVeh'))+'</span><b class="num">'+esc(typedPhone?q:ui.q.trim().toUpperCase())+'</b></span>'+
-     (ui.adding?'':'<button class="btn btn-sm btn-soft" id="add">'+ic('plus','sm')+(typedPhone?t('plate')+' / ':'')+t('nameShort')+'</button>')+'</div>';
-    if(!typedPhone)h+=phoneBox();
-    if(ui.adding)h+='<div class="addf">'+
-     (typedPhone?'<div><label class="label" for="n-plate">'+t('plate')+' <span class="opt">('+t('optional')+')</span></label><input class="input num up" id="n-plate" placeholder="AP 31 AB 1234" autocapitalize="characters" value="'+esc(ui.nplate||'')+'"></div>':'')+
-     '<div><label class="label" for="n-name">'+t('nameLbl')+' <span class="opt">('+t('optional')+')</span></label><div class="input-group">'+ic('user')+'<input class="input" id="n-name" placeholder="'+t('nameLbl')+'" value="'+esc(ui.nname||'')+'"></div></div></div>';
+    // a new customer: every detail must be filled before the wash can be saved
+    var showErr=ui.sel.length>0,miss=newCustMissing(q);
+    h+='<div class="newveh"><span class="nv-ic">'+ic(typedPhone?'phone':'car-front','sm')+'</span><span class="nv-txt"><span class="sub">'+(typedPhone?t('newCust')+' · '+t('mobileReq'):t('newVeh'))+'</span><b class="num">'+esc(typedPhone?q:ui.q.trim().toUpperCase())+'</b></span></div>'+
+     '<div class="hint left">'+ic('circle-alert','xs')+t('newCustAll')+'</div>';
+    h+='<div class="addf">';
+    if(typedPhone)h+='<div class="'+(showErr&&miss.plate?'bad':'')+'"><label class="label" for="n-plate">'+t('plate')+' <span class="req">*</span></label><input class="input num up" id="n-plate" placeholder="e.g. AP 31 AB 1234" autocapitalize="characters" autocomplete="off" value="'+esc(ui.nplate||'')+'">'+
+     (showErr&&miss.plate?'<span class="field-err">'+t('needPlate')+'</span>':'')+'</div>';
+    else h+=phoneBox();
+    h+='<div class="'+(showErr&&miss.name?'bad':'')+'"><label class="label" for="n-name">'+t('nameLbl')+' <span class="req">*</span></label><div class="input-group">'+ic('user')+'<input class="input" id="n-name" placeholder="'+t('nameLbl')+'" autocomplete="off" value="'+esc(ui.nname||'')+'"></div>'+
+     (showErr&&miss.name?'<span class="field-err">'+t('needName')+'</span>':'')+'</div></div>';
    }
   } else h+='<div class="hint">'+t('plateHint')+'</div>';
  }
@@ -1116,8 +1123,10 @@ function washView(){
  var free=c?isFree(c):false;
  var sum=ui.sel.reduce(function(a,id){var s=svc(id);return a+(s?s.price:0)},0);
  var needPhone=!phoneOk(c?c.phone:(/^\d{10,}$/.test(q)?q:ui.nphone));
- var ready=nsel>0&&(c||q.length>=3)&&!needPhone;
- var hint=ready?t('payHow'):(!c&&q.length<3?t('needVeh'):(needPhone?t('needPhone'):t('selectSvc')));
+ var isNew=!c&&q.length>=3&&!D.customers.some(function(x){return normPlate(x.plate)===q||(/^\d{10,}$/.test(q)&&String(x.phone).replace(/\D/g,'')===q)});
+ var nm=isNew?newCustMissing(q):{},needDetails=isNew&&(nm.plate||nm.name);
+ var ready=nsel>0&&(c||q.length>=3)&&!needPhone&&!needDetails;
+ var hint=ready?t('payHow'):(!c&&q.length<3?t('needVeh'):(needPhone?t('needPhone'):(needDetails?t('needDetails'):t('selectSvc'))));
  if(ui.pay&&(!ready||(free&&ui.pay!=='cash')))ui.pay=null;
  var amt=free?0:sum,chosen=ui.pay;
  if(ready)hint=chosen?(chosen==='credit'?t('laterCheck'):t('moneyCheck').replace('{amt}',rs(amt)).replace('{m}',t(chosen))):t('payHow');
@@ -1127,6 +1136,12 @@ function washView(){
   '<div class="pb-hint'+(ready?' ok':'')+'">'+hint+'</div><div class="paybtns">'+pb('cash',!ready)+pb('upi',!(ready&&!free))+pb('card',!(ready&&!free))+pb('credit',!(ready&&!free))+'</div>'+
   '<button class="btn btn-block payok'+(chosen==='credit'?' later':'')+'" id="pay-ok" '+(chosen&&ready?'':'disabled')+'>'+ic(chosen==='credit'?'clock':'check')+'<span>'+okLab+'</span></button></div>';
  return h;
+}
+
+/* what a new customer still lacks: vehicle number (when a phone was typed) and name */
+function newCustMissing(q){
+ var typedPhone=/^\d{10,}$/.test(q);
+ return {plate:typedPhone&&normPlate(ui.nplate||'').length<4,name:String(ui.nname||'').trim().length<2};
 }
 
 /* ---------- 8. Customers ---------- */
@@ -1440,9 +1455,10 @@ function saveWash(pay){
   if(key.length<3)return;
   c=D.customers.filter(function(x){return normPlate(x.plate)===key||(/^\d{10,}$/.test(key)&&String(x.phone).replace(/\D/g,'')===key)})[0];
   if(!c){
-   var isPhone=/^\d{10,}$/.test(key);
+   var isPhone=/^\d{10,}$/.test(key),miss=newCustMissing(key);
+   if(miss.plate||miss.name)return;   // new customers need all their details
    var phone=isPhone?phoneDigits(key):phoneDigits(ui.nphone);
-   var plate=isPhone?((ui.nplate||'').trim().toUpperCase().replace(/\s+/g,' ')||key):raw;
+   var plate=isPhone?(ui.nplate||'').trim().toUpperCase().replace(/\s+/g,' '):raw;
    c={id:newId('C'),plate:plate,phone:phone,name:(ui.nname||'').trim(),visits:0,due:0,last:null};
    D.customers.push(c);
   }
@@ -1660,7 +1676,7 @@ document.addEventListener('click',function(e){
 document.addEventListener('input',function(e){
  var id=e.target.id;
  if(id==='q'){ui.q=e.target.value;render()}
- else if(id==='n-phone'){ui.nphone=e.target.value;render()}else if(id==='n-plate'){ui.nplate=e.target.value}else if(id==='n-name'){ui.nname=e.target.value}
+ else if(id==='n-phone'){ui.nphone=e.target.value;render()}else if(id==='n-plate'){ui.nplate=e.target.value;render()}else if(id==='n-name'){ui.nname=e.target.value;render()}
  else if(id==='shopcode'){ui.code=e.target.value}
  else if(id==='cq'){ui.q=e.target.value;render()}
  else if(id==='amt'){ui.amt=e.target.value.replace(/[^\d]/g,'');render()}
