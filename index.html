@@ -256,7 +256,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
-  invoice:'Invoice',customer:'Customer',vehicle:'Vehicle',freeWash:'Loyalty – free wash',thanks:'Thank you! Please visit again 🙏',sendInvoice:'Send invoice on WhatsApp',done:'Done',
+  invoice:'Invoice',customer:'Customer',vehicle:'Vehicle',freeWash:'Loyalty – free wash',thanks:'Thank you! Please visit again 🙏',sendInvoice:'1 · Send invoice on WhatsApp',done:'Done',sendPdf:'2 · Send PDF invoice',pdfHint:'Choose WhatsApp, then this customer\'s chat',pdfSaved:'PDF saved – send it from your files',
   cashHand:'Cash in hand',byVehicle:'By vehicle type',shareSum:'Share on WhatsApp',
   sendAll:'Send to all',sendHow:'Tap the green button, press Send in WhatsApp, then come back here for the next customer.',skip:'Skip',stop:'Stop',close2:'Close',sentAll:'Done. Offer sent to {n} customers.',allSent:'Everyone in this list has been sent the offer.',offerSentOn:'Offer sent {d}',sendAgain:'Send again',
   mobileReq:'Mobile number',needPhone:'Enter the customer\'s 10-digit mobile number',logout:'Logout',
@@ -290,7 +290,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
-  invoice:'ఇన్వాయిస్',customer:'కస్టమర్',vehicle:'వాహనం',freeWash:'లాయల్టీ – ఉచిత వాష్',thanks:'ధన్యవాదాలు! మళ్ళీ రండి 🙏',sendInvoice:'వాట్సాప్‌లో ఇన్వాయిస్ పంపండి',done:'పూర్తయింది',
+  invoice:'ఇన్వాయిస్',customer:'కస్టమర్',vehicle:'వాహనం',freeWash:'లాయల్టీ – ఉచిత వాష్',thanks:'ధన్యవాదాలు! మళ్ళీ రండి 🙏',sendInvoice:'1 · వాట్సాప్‌లో ఇన్వాయిస్ పంపండి',done:'పూర్తయింది',sendPdf:'2 · PDF ఇన్వాయిస్ పంపండి',pdfHint:'వాట్సాప్ ఎంచుకుని, ఈ కస్టమర్ చాట్ ఎంచుకోండి',pdfSaved:'PDF సేవ్ అయింది – ఫైల్స్ నుండి పంపండి',
   cashHand:'చేతిలో నగదు',byVehicle:'వాహనం రకం వారీగా',shareSum:'వాట్సాప్‌లో పంపండి',
   sendAll:'అందరికీ పంపండి',sendHow:'ఆకుపచ్చ బటన్ నొక్కి, వాట్సాప్‌లో Send నొక్కి, తర్వాతి కస్టమర్ కోసం ఇక్కడికి తిరిగి రండి.',skip:'దాటవేయి',stop:'ఆపండి',close2:'మూసివేయి',sentAll:'అయిపోయింది. {n} కస్టమర్లకు ఆఫర్ పంపారు.',allSent:'ఈ లిస్ట్‌లో అందరికీ ఆఫర్ పంపారు.',offerSentOn:'ఆఫర్ పంపారు {d}',sendAgain:'మళ్ళీ పంపండి',
   mobileReq:'మొబైల్ నంబర్',needPhone:'కస్టమర్ 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి',logout:'లాగ్ అవుట్',
@@ -314,7 +314,7 @@ var T={
    Paste your Apps Script Web app URL (ends in /exec) here.
    ========================================================= */
 var APP_URL='https://script.google.com/macros/s/AKfycbwW24Q07XEZu6LPLIUu4K8tEw_HjYYRxjsZoBzhzycrCetpC5A2r-YpENNc2BB6FWz12A/exec';
-var APP_VERSION='3.1';   // must match APP_VERSION in Code.gs
+var APP_VERSION='3.2';   // must match APP_VERSION in Code.gs
 
 function cleanCode(c){return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 var SHOP=(function(){
@@ -997,6 +997,70 @@ function invoiceText(rc){
  L.push('ధన్యవాదాలు! మళ్ళీ రండి 🙏');
  return L.join('\n');
 }
+/* ---------- PDF invoice: drawn on a canvas (Telugu works), wrapped in a one-page PDF; no internet needed ---------- */
+function invoiceCanvas(rc){
+ var W=900,M=56,cv=document.createElement('canvas');cv.width=W;cv.height=2400;
+ var x=cv.getContext('2d');if(!x)return null;
+ var F='"Baloo Tammudu 2","Noto Sans Telugu","Nirmala UI",system-ui,sans-serif',w=rc.w,c=rc.cust;
+ var ink='#12303A',mute='#5B7480',line='#D5E2E6',blue='#0A78A0',green='#1C8556';
+ x.fillStyle='#fff';x.fillRect(0,0,W,cv.height);x.textBaseline='alphabetic';
+ function txt(s,X,Y,size,col,wt,al){x.font=(wt||400)+' '+size+'px '+F;x.fillStyle=col||ink;x.textAlign=al||'left';x.fillText(s,X,Y)}
+ function fit(s,size,max,wt){do{x.font=(wt||400)+' '+size+'px '+F;size-=2}while(x.measureText(s).width>max&&size>16);return size+2}
+ function hr(Y,col,dash){x.strokeStyle=col||line;x.lineWidth=2;x.setLineDash(dash?[10,8]:[]);x.beginPath();x.moveTo(M,Y);x.lineTo(W-M,Y);x.stroke();x.setLineDash([])}
+ // header band
+ x.fillStyle=blue;x.fillRect(0,0,W,170);
+ var shop=D.settings.shopName||'';txt(shop,M,82,fit(shop,46,W-2*M-200,800),'#fff',800);
+ txt('INVOICE',W-M,82,30,'#fff',800,'right');
+ txt('Invoice No: '+w.inv,M,132,24,'#DFF1F7',600);txt(fmtDay(w.date)+', '+fmtTime(w.t),W-M,132,24,'#DFF1F7',600,'right');
+ var y=220;
+ txt('BILL TO',M,y,20,mute,700);txt('VEHICLE',W/2+10,y,20,mute,700);y+=40;
+ txt(c.name||'—',M,y,fit(c.name||'—',30,W/2-M-20,700),ink,700);txt(c.plate,W/2+10,y,fit(c.plate,30,W/2-M-20,700),ink,700);y+=38;
+ txt('Mobile: '+c.phone,M,y,24,ink);txt(rc.vt||'',W/2+10,y,fit(rc.vt||'',24,W/2-M-20),ink);y+=48;
+ // items
+ x.fillStyle='#EEF5F7';x.fillRect(M,y,W-2*M,50);txt('SERVICE',M+16,y+34,20,mute,700);txt('AMOUNT (₹)',W-M-16,y+34,20,mute,700,'right');y+=50;
+ rc.items.forEach(function(it){y+=46;txt(it.en,M+16,y,fit(it.en,26,W-2*M-200),ink);txt(it.price.toLocaleString('en-IN'),W-M-16,y,26,ink,600,'right');y+=18;hr(y)});
+ if(w.free){var all=rc.items.reduce(function(a,i){return a+i.price},0);y+=46;txt('Loyalty – free wash',M+16,y,26,green,700);txt('−'+all.toLocaleString('en-IN'),W-M-16,y,26,green,700,'right');y+=18;hr(y)}
+ y+=58;txt('TOTAL',M+16,y,34,ink,800);txt('₹'+w.amt.toLocaleString('en-IN'),W-M-16,y,38,ink,800,'right');y+=22;hr(y,ink);
+ y+=46;var pm=w.free?'Free wash':({cash:'Cash',upi:'UPI',card:'Card',credit:'Pay later'}[w.pay]||w.pay);
+ txt('Paid by: '+pm,M+16,y,26,ink,700);if(w.pay==='credit')txt('Amount due: ₹'+c.due.toLocaleString('en-IN'),W-M-16,y,26,'#B23A2E',700,'right');
+ var ln=loyaltyNote(rc);
+ if(ln){y+=40;x.fillStyle='#E3F4EA';x.fillRect(M,y,W-2*M,64);txt('★ '+ln.en,W/2,y+42,fit('★ '+ln.en,26,W-2*M-30,700),green,700,'center');y+=64}
+ y+=70;txt('Thank you! Please visit again.',W/2,y,30,ink,700,'center');y+=46;txt('ధన్యవాదాలు! మళ్ళీ రండి',W/2,y,28,mute,600,'center');
+ y+=40;hr(y,line,true);y+=36;txt(shop+(D.settings.ownerPhone?' · '+D.settings.ownerPhone:''),W/2,y,20,mute,400,'center');y+=34;
+ var out=document.createElement('canvas');out.width=W;out.height=y;var o=out.getContext('2d');o.drawImage(cv,0,0);return out;
+}
+function pdfFromJpeg(jpg,wpx,hpx){   // smallest valid PDF: one page holding one JPEG
+ var pw=420,ph=Math.round(420*hpx/wpx),parts=[],off=[],len=0;
+ function add(s){var b=typeof s==='string'?Uint8Array.from(s,function(ch){return ch.charCodeAt(0)&255}):s;parts.push(b);len+=b.length}
+ function obj(n,body){off[n]=len;add(n+' 0 obj\n');body();add('\nendobj\n')}
+ var cs='q '+pw+' 0 0 '+ph+' 0 0 cm /Im0 Do Q';
+ add('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+ obj(1,function(){add('<< /Type /Catalog /Pages 2 0 R >>')});
+ obj(2,function(){add('<< /Type /Pages /Kids [3 0 R] /Count 1 >>')});
+ obj(3,function(){add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+pw+' '+ph+'] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>')});
+ obj(4,function(){add('<< /Type /XObject /Subtype /Image /Width '+wpx+' /Height '+hpx+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+jpg.length+' >>\nstream\n');add(jpg);add('\nendstream')});
+ obj(5,function(){add('<< /Length '+cs.length+' >>\nstream\n'+cs+'\nendstream')});
+ var xr=len,t='xref\n0 6\n0000000000 65535 f \n';
+ for(var i=1;i<=5;i++)t+=('000000000'+off[i]).slice(-10)+' 00000 n \n';
+ add(t+'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n'+xr+'\n%%EOF');
+ var all=new Uint8Array(len),p=0;parts.forEach(function(b){all.set(b,p);p+=b.length});return all;
+}
+function invoicePdf(rc){
+ var cv=invoiceCanvas(rc);if(!cv)return null;
+ var b=atob(cv.toDataURL('image/jpeg',0.9).split(',')[1]),jpg=new Uint8Array(b.length);
+ for(var i=0;i<b.length;i++)jpg[i]=b.charCodeAt(i);
+ return pdfFromJpeg(jpg,cv.width,cv.height);
+}
+function sharePdf(rc){
+ if(!rc)return;var bytes=invoicePdf(rc);if(!bytes){toast('PDF ✗');return}
+ var name='Invoice-'+rc.w.inv+'.pdf',file=null;
+ try{file=new File([bytes],name,{type:'application/pdf'})}catch(e){}
+ if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+  navigator.share({files:[file],title:name}).catch(function(){});return;
+ }
+ var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));a.download=name;
+ document.body.appendChild(a);a.click();a.remove();toast(t('pdfSaved'));
+}
 function receiptView(){
  var rc=lastRc;if(!rc){view='home';return homeView()}
  var w=rc.w,c=rc.cust,h=header(t('invoice'));
@@ -1011,6 +1075,8 @@ function receiptView(){
   (ln?'<div class="bill-loyal">⭐ '+esc(lang==='te'?ln.te:ln.en)+'</div>':'')+
   '<div class="bill-thanks">'+t('thanks')+'</div></div>';
  h+='<a class="big wa-inv" style="background:var(--wa)" target="_blank" rel="noopener" href="https://wa.me/'+waNum(c.phone)+'?text='+encodeURIComponent(invoiceText(rc))+'">💬 '+t('sendInvoice')+'</a>'+
+  '<button class="big" id="rc-pdf" style="background:var(--close)">📄 '+t('sendPdf')+'</button>'+
+  '<p class="sub" style="text-align:center;margin:-4px 0 4px">'+t('pdfHint')+'</p>'+
   '<button class="big" id="rc-done" style="background:var(--wash)">✓ '+t('done')+'</button>';
  return h;
 }
@@ -1067,6 +1133,7 @@ document.addEventListener('click',function(e){
  if(d.go){if(readOnly()&&d.go!=='home'&&d.go!=='cust'&&d.go!=='branches'){toast(t('locked'),true);return}go(d.go);if(d.go==='branches')loadBranches();return}
  if(d.switch){switchShop(d.switch);return}
  if(b.id==='rc-done'){go('home');return}
+ if(b.id==='rc-pdf'){sharePdf(lastRc);return}
  if(b.id==='sq-start'){startSendAll();return}
  if(b.id==='sq-skip'){ui.si++;render();return}
  if(b.id==='sq-stop'||b.id==='sq-close'){ui.sq=null;render();return}
