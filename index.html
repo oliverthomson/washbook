@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="WashBook">
 <meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Tammudu+2:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700;800&display=swap">
 <style>
 :root{
   --bg:#E9F2F4; --surface:#FFFFFF; --sunk:#DCE8EC; --ink:#0D2731; --muted:#587080; --line:#C9D9DF;
@@ -20,7 +20,7 @@
   --good:#1B8A4A; --good-bg:#DDF3E5; --bad:#C0352A; --bad-bg:#FBE3E0; --warn:#9A6A00; --warn-bg:#FFF1CC;
   --on:#FFFFFF; --wa:#1FA855;
   --logo-bg:#D4ECF4; --logo-drop:#2A9CC6; --logo-win:#CFEAF5;
-  --font:"Baloo Tammudu 2","Noto Sans Telugu","Nirmala UI",system-ui,sans-serif;
+  --font:"Poppins","Noto Sans Telugu","Nirmala UI",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root{
   --bg:#0B1A20; --surface:#13262E; --sunk:#0F2027; --ink:#E4F0F3; --muted:#8FA8B3; --line:#24404B;
@@ -256,7 +256,7 @@ var T={
   synced:'✓ Saved',waiting:'⏳ {n} to send',offline:'⚠ No internet · {n}',
   collect:'Collect',collectQ:'Received {amt} cash?',yes:'Yes',no:'No',delQ:'Delete this entry?',askOwner:'Only the owner can delete this now',
   shopCode:'Enter your shop code',open:'Open',
-  invoice:'Invoice',customer:'Customer',vehicle:'Vehicle',freeWash:'Loyalty – free wash',thanks:'Thank you! Please visit again 🙏',sendInvoice:'1 · Send invoice on WhatsApp',done:'Done',sendPdf:'2 · Send PDF invoice',pdfHint:'Choose WhatsApp, then this customer\'s chat',pdfSaved:'PDF saved – send it from your files',
+  invoice:'Invoice',customer:'Customer',vehicle:'Vehicle',freeWash:'Loyalty – free wash',thanks:'Thank you! Please visit again 🙏',sendInvoice:'1 · Send on WhatsApp',done:'Done',sendPdf:'2 · Send PDF',pdfHint:'Choose WhatsApp, then this customer\'s chat',pdfSaved:'PDF saved – send it from your files',
   cashHand:'Cash in hand',byVehicle:'By vehicle type',shareSum:'Share on WhatsApp',
   sendAll:'Send to all',sendHow:'Tap the green button, press Send in WhatsApp, then come back here for the next customer.',skip:'Skip',stop:'Stop',close2:'Close',sentAll:'Done. Offer sent to {n} customers.',allSent:'Everyone in this list has been sent the offer.',offerSentOn:'Offer sent {d}',sendAgain:'Send again',
   mobileReq:'Mobile number',needPhone:'Enter the customer\'s 10-digit mobile number',logout:'Logout',
@@ -290,7 +290,7 @@ var T={
   synced:'✓ సేవ్',waiting:'⏳ {n} పంపాలి',offline:'⚠ ఇంటర్నెట్ లేదు · {n}',
   collect:'వసూలు',collectQ:'{amt} నగదు అందిందా?',yes:'అవును',no:'కాదు',delQ:'ఈ ఎంట్రీ తొలగించాలా?',askOwner:'ఇప్పుడు ఓనర్ మాత్రమే తొలగించగలరు',
   shopCode:'మీ షాప్ కోడ్ నమోదు చేయండి',open:'తెరవండి',
-  invoice:'ఇన్వాయిస్',customer:'కస్టమర్',vehicle:'వాహనం',freeWash:'లాయల్టీ – ఉచిత వాష్',thanks:'ధన్యవాదాలు! మళ్ళీ రండి 🙏',sendInvoice:'1 · వాట్సాప్‌లో ఇన్వాయిస్ పంపండి',done:'పూర్తయింది',sendPdf:'2 · PDF ఇన్వాయిస్ పంపండి',pdfHint:'వాట్సాప్ ఎంచుకుని, ఈ కస్టమర్ చాట్ ఎంచుకోండి',pdfSaved:'PDF సేవ్ అయింది – ఫైల్స్ నుండి పంపండి',
+  invoice:'ఇన్వాయిస్',customer:'కస్టమర్',vehicle:'వాహనం',freeWash:'లాయల్టీ – ఉచిత వాష్',thanks:'ధన్యవాదాలు! మళ్ళీ రండి 🙏',sendInvoice:'1 · వాట్సాప్‌లో పంపండి',done:'పూర్తయింది',sendPdf:'2 · PDF పంపండి',pdfHint:'వాట్సాప్ ఎంచుకుని, ఈ కస్టమర్ చాట్ ఎంచుకోండి',pdfSaved:'PDF సేవ్ అయింది – ఫైల్స్ నుండి పంపండి',
   cashHand:'చేతిలో నగదు',byVehicle:'వాహనం రకం వారీగా',shareSum:'వాట్సాప్‌లో పంపండి',
   sendAll:'అందరికీ పంపండి',sendHow:'ఆకుపచ్చ బటన్ నొక్కి, వాట్సాప్‌లో Send నొక్కి, తర్వాతి కస్టమర్ కోసం ఇక్కడికి తిరిగి రండి.',skip:'దాటవేయి',stop:'ఆపండి',close2:'మూసివేయి',sentAll:'అయిపోయింది. {n} కస్టమర్లకు ఆఫర్ పంపారు.',allSent:'ఈ లిస్ట్‌లో అందరికీ ఆఫర్ పంపారు.',offerSentOn:'ఆఫర్ పంపారు {d}',sendAgain:'మళ్ళీ పంపండి',
   mobileReq:'మొబైల్ నంబర్',needPhone:'కస్టమర్ 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి',logout:'లాగ్ అవుట్',
@@ -314,7 +314,7 @@ var T={
    Paste your Apps Script Web app URL (ends in /exec) here.
    ========================================================= */
 var APP_URL='https://script.google.com/macros/s/AKfycbwW24Q07XEZu6LPLIUu4K8tEw_HjYYRxjsZoBzhzycrCetpC5A2r-YpENNc2BB6FWz12A/exec';
-var APP_VERSION='3.2';   // must match APP_VERSION in Code.gs
+var APP_VERSION='3.3';   // must match APP_VERSION in Code.gs
 
 function cleanCode(c){return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 var SHOP=(function(){
@@ -555,7 +555,7 @@ function openShop(code,carryToken){
  lang=LS.get('lang',lang);token=LS.get('token',null);D=LS.get('data',null);Q=LS.get('queue',[]);
  if(carryToken&&!token){token=carryToken;LS.set('token',token)}
  if(carryToken){LS.set('pinh',carryPin);touchActive(true)}   // the owner stays unlocked when he switches branch
- fatal='';net='ok';boot();
+ fatal='';net='ok';keepOpen=!!carryToken;boot();keepOpen=false;
 }
 function readOnly(){return !!(D&&D.licence&&D.licence.state==='expired')}
 function licBanner(){
@@ -568,7 +568,7 @@ function licBanner(){
 function toLogin(){token=null;LS.del('token');LS.del('pinh');locked=false;view='login';ui={pin:''};render();fetchShopName()}
 
 /* ---------- lock after 5 minutes without use; the PIN is checked on the phone, so it unlocks offline too ---------- */
-var IDLE_MS=5*60*1000,locked=false;
+var IDLE_MS=5*60*1000,AWAY_MS=2*60*1000,locked=false,keepOpen=false,hiddenAt=0;   // PIN: on every app start, after 5 min idle, or after 2 min away in another app
 function pinHash(p){var h=2166136261,str='wb:'+p;for(var i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),16777619)>>>0}return h.toString(36)}
 function touchActive(force){var n=Date.now();if(force||n-(touchActive.l||0)>5000){touchActive.l=n;LS.set('active',n)}}
 function idleTooLong(){var a=LS.get('active',0);return !a||Date.now()-a>IDLE_MS}
@@ -1001,7 +1001,7 @@ function invoiceText(rc){
 function invoiceCanvas(rc){
  var W=900,M=56,cv=document.createElement('canvas');cv.width=W;cv.height=2400;
  var x=cv.getContext('2d');if(!x)return null;
- var F='"Baloo Tammudu 2","Noto Sans Telugu","Nirmala UI",system-ui,sans-serif',w=rc.w,c=rc.cust;
+ var F='"Poppins","Noto Sans Telugu","Nirmala UI",system-ui,sans-serif',w=rc.w,c=rc.cust;
  var ink='#12303A',mute='#5B7480',line='#D5E2E6',blue='#0A78A0',green='#1C8556';
  x.fillStyle='#fff';x.fillRect(0,0,W,cv.height);x.textBaseline='alphabetic';
  function txt(s,X,Y,size,col,wt,al){x.font=(wt||400)+' '+size+'px '+F;x.fillStyle=col||ink;x.textAlign=al||'left';x.fillText(s,X,Y)}
@@ -1201,7 +1201,8 @@ document.addEventListener('submit',function(e){
 document.addEventListener('keydown',function(e){
  if(view==='login'){if(/^\d$/.test(e.key)){ui.pin=(ui.pin||'')+e.key;pinErr='';render();if(ui.pin.length===4)setTimeout(doLogin,120)}else if(e.key==='Backspace'){ui.pin=(ui.pin||'').slice(0,-1);render()}else if(e.key==='Enter')doLogin()}
 });
-document.addEventListener('visibilitychange',function(){if(!document.hidden){if(token&&idleTooLong())lockApp();if(!checkDay()){flush();refresh()}}});
+document.addEventListener('visibilitychange',function(){if(document.hidden){hiddenAt=Date.now();return}
+ {if(token&&(idleTooLong()||(hiddenAt&&Date.now()-hiddenAt>AWAY_MS)))lockApp();hiddenAt=0;if(!checkDay()){flush();refresh()}}});
 ['pointerdown','keydown','input','touchstart'].forEach(function(ev){document.addEventListener(ev,function(){if(token&&!locked)touchActive()},true)});
 setInterval(function(){if(token&&!locked&&idleTooLong())lockApp();checkDay()},15000);
 window.addEventListener('online',function(){flush()});
@@ -1213,7 +1214,7 @@ function boot(){
  if(!SHOP){view='pick';ui={code:''};return render()}
  if(!token){view='login';ui={pin:''};render();fetchShopName();return}
  checkDay();
- if(idleTooLong()){locked=true;view='login';ui={pin:''};render();flush();refresh(!D);return}
+ if(!keepOpen||idleTooLong()){locked=true;view='login';ui={pin:''};render();flush();refresh(!D);return}
  if(D)go('home');else{view='loading';render()}
  flush();refresh(!D);
 }
